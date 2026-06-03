@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>オペレーター検索ツール 設計書</title>
+    <style>
+      :root {
+        --bg: #dfe9f7;
+        --panel: #ffffff;
+        --ink: #10243e;
+        --muted: #4d6178;
+        --line: #b9c9dc;
+        --accent: #0b5fff;
+        --accent-soft: #eaf1ff;
+        --good: #047857;
+        --good-soft: #ecfdf5;
+        --good-border: #6ee7b7;
+        --bad: #b91c1c;
+        --bad-soft: #fef2f2;
+        --bad-border: #fca5a5;
+        --warn: #b45309;
+        --warn-soft: #fff7ed;
+        --pii: #7c3aed;
+        --pii-soft: #f3e8ff;
+        --history: #c2410c;
+        --history-soft: #ffedd5;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 90% -20%, #c8dcff 0%, transparent 35%),
+          radial-gradient(circle at -10% 20%, #d7f1e8 0%, transparent 30%),
+          var(--bg);
+        font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+        line-height: 1.65;
+      }
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 18px 60px; }
+      .hero {
+        background: linear-gradient(135deg, #0b1b34 0%, #1d3f70 70%, #245c9d 100%);
+        color: #fff;
+        border-radius: 14px;
+        padding: 24px 26px;
+      }
+      .hero h1 { margin: 0 0 10px; font-size: 28px; }
+      .hero p { margin: 0; color: #d4e3ff; font-size: 14px; }
+      .panel {
+        background: var(--panel);
+        border: 3px solid #8ea7c4;
+        border-radius: 14px;
+        padding: 20px 22px;
+        box-shadow: 0 1px 0 #b4c4d6;
+        margin-top: 18px;
+      }
+      h2 {
+        margin: 0 0 14px;
+        font-size: 23px;
+        font-weight: 900;
+        color: #0d2b52;
+        border-bottom: 3px solid #cdd9ea;
+        padding-bottom: 8px;
+      }
+      h3 {
+        margin: 20px 0 10px;
+        font-size: 17px;
+        font-weight: 800;
+        color: #123766;
+      }
+      h4 { margin: 14px 0 8px; font-size: 15px; color: #0d2b52; }
+      p { margin: 8px 0; }
+      .lead { color: var(--muted); font-size: 14px; }
+      .mono { font-family: Consolas, "Courier New", monospace; font-size: 13px; }
+      .tag {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        margin-right: 4px;
+      }
+      .tag-pii { background: var(--pii-soft); color: var(--pii); }
+      .tag-history { background: var(--history-soft); color: var(--history); }
+      .tag-index { background: var(--good-soft); color: var(--good); }
+      .rule {
+        border-left: 5px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        border-radius: 0 8px 8px 0;
+        margin: 14px 0;
+      }
+      .rule strong { color: var(--accent); }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+      th, td {
+        border-bottom: 2px solid #b7c9dc;
+        border-right: 1px solid #cad7e5;
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th { background: #e8f0fb; color: #123766; font-weight: 900; }
+
+      .er-grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 12px;
+      }
+      @media (min-width: 800px) {
+        .er-grid { grid-template-columns: 1fr 1fr 1fr; }
+      }
+      .er-card {
+        border: 3px solid #7e9cc0;
+        border-radius: 10px;
+        background: #f7fbff;
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+      .er-card.history { border-color: #fb923c; background: #fff7ed; }
+      .er-card.index { border-color: #6ee7b7; background: #f0fdf4; }
+      .er-card.raw { border-color: #c084fc; background: #faf5ff; }
+      .er-card h4 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        color: #0d2b52;
+        border-bottom: 1px solid #b9c9dc;
+        padding-bottom: 4px;
+      }
+      .er-card ul { margin: 0; padding-left: 16px; }
+      .er-card li { margin: 2px 0; }
+      .er-card .pk { font-weight: 900; }
+      .er-card .fk { color: #b45309; }
+
+      .flow-step {
+        background: #fff;
+        border: 3px solid #aec3dc;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 8px 0;
+      }
+      .flow-step .step-num {
+        display: inline-block;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 900;
+        border-radius: 999px;
+        padding: 1px 10px;
+        margin-right: 8px;
+        font-size: 12px;
+      }
+      .card {
+        border-radius: 10px;
+        padding: 14px 16px;
+        border: 3px solid;
+        margin: 10px 0;
+      }
+      .card .label { font-weight: 900; font-size: 13px; margin-bottom: 8px; }
+      .card .ex {
+        font-size: 14px;
+        background: #fff;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border: 1px dashed #c9d4e3;
+      }
+      .card.bad { background: var(--bad-soft); border-color: var(--bad-border); }
+      .card.bad .label { color: var(--bad); }
+      .card.good { background: var(--good-soft); border-color: var(--good-border); }
+      .card.good .label { color: var(--good); }
+      .card.pii { background: var(--pii-soft); border-color: #c084fc; }
+      .card.pii .label { color: var(--pii); }
+      .card.raw { background: var(--warn-soft); border-color: #fbbf24; }
+      .card.raw .label { color: var(--warn); }
+      .card.history { background: var(--history-soft); border-color: #fb923c; }
+      .card.history .label { color: var(--history); }
+      .reason { margin-top: 8px; font-size: 13px; color: var(--muted); }
+      .reason strong { color: var(--ink); }
+
+      .sample {
+        border: 3px solid #7e9cc0;
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-top: 18px;
+        background: #f6faff;
+      }
+      .sample-title {
+        font-size: 17px;
+        font-weight: 900;
+        color: #0d2b52;
+        margin: 0 0 4px;
+      }
+      .sample-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+      .nav { font-size: 13px; color: #d4e3ff; margin-top: 10px; }
+      .nav a { color: #a9d0ff; margin-right: 12px; text-decoration: underline; }
+      .toc {
+        background: #f6faff;
+        border: 2px solid #b9cee8;
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-top: 14px;
+        font-size: 14px;
+      }
+      .toc ol { margin: 6px 0; padding-left: 22px; }
+      .pii-mark {
+        background: var(--pii-soft);
+        color: var(--pii);
+        padding: 0 4px;
+        border-radius: 3px;
+        font-weight: 700;
+        font-family: Consolas, monospace;
+        font-size: 13px;
+      }
+      .ui-mock {
+        background: #1a2540;
+        color: #e5edff;
+        border-radius: 10px;
+        padding: 16px;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre;
+        overflow-x: auto;
+        margin: 12px 0;
+      }
+      .pivot {
+        background: #fff7ed;
+        border: 2px dashed #fb923c;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin: 12px 0;
+        color: #7c2d12;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1>オペレーター検索ツール 設計書</h1>
+        <p>顧客対応中のオペレーターが「過去の対応・FAQ・マニュアル」を素早く引き、検索履歴を再利用できる RAG ツールの設計。</p>
+        <div class="nav">
+          <a href="/data-flow.html">← データフロー早見表</a>
+          <a href="/chunking-rules.html">← chunks/documents ルール案</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>0. 目次</h2>
+        <div class="toc">
+          <ol>
+            <li>このツールが「何をする」か(再定義)</li>
+            <li>オペレーターのユーザストーリー</li>
+            <li>DB 設計図(検索履歴中心)</li>
+            <li>各テーブル詳細スキーマ</li>
+            <li>クエリ側マスク設計(Sudachi + 正規表現)</li>
+            <li>定数定義(enum / tag 正規辞書)</li>
+            <li>検索セッションサンプル × 4 件</li>
+            <li>UI 設計案</li>
+            <li>パイプライン全体図</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>1. このツールが「何をする」か(再定義)</h2>
+        <div class="rule">
+          <strong>主役はオペレーター。</strong>顧客対応中に「過去どう答えたか / マニュアルにあるか」を <strong>キーボード数回で引ける</strong>のがゴール。<br />
+          顧客の問い合わせを自動取り込みする仕組みは <strong>本ツールの目的ではない</strong>(ナレッジ追加は別経路でいい)。
+        </div>
+
+        <h3>主機能</h3>
+        <table>
+          <thead><tr><th>機能</th><th>用途</th><th>備考</th></tr></thead>
+          <tbody>
+            <tr><td><strong>横断検索</strong></td><td>FAQ / 過去事例 / マニュアル / 内部メモを一発検索</td><td>ハイブリッド検索(キーワード+ベクトル+タグ絞り込み)</td></tr>
+            <tr><td><strong>検索履歴</strong></td><td>自分の過去検索を一覧 / 再実行 / シェア</td><td>本ツールの核。検索の組み立てを資産にする</td></tr>
+            <tr><td><strong>有用度フィードバック</strong></td><td>「この結果が役に立った」「ハズレ」を1クリック</td><td>順位学習と、運用評価の両方に使う</td></tr>
+            <tr><td><strong>セッション</strong></td><td>1つの顧客対応 = 1セッション。複数検索をまとめる</td><td>後から「この対応で何を引いたか」を辿れる</td></tr>
+            <tr><td><strong>類似検索のサジェスト</strong></td><td>「他のオペレーターが似た問題でヒットさせた検索」</td><td>暗黙知の共有</td></tr>
+          </tbody>
+        </table>
+
+        <div class="pivot">
+          <strong>前の設計からの主な変更点:</strong><br />
+          ・主役テーブルを <span class="mono">raw_inquiries</span> から <span class="mono">search_sessions / search_queries</span> に変更<br />
+          ・PII マスクは「顧客文を自動取り込む」のではなく <strong>「オペレーターが検索窓に貼り付けたテキスト」</strong>を対象に行う<br />
+          ・documents への自動投入パイプラインは「あれば嬉しい」のオプション扱いに格下げ
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>2. オペレーターのユーザストーリー</h2>
+
+        <h3>典型シナリオ</h3>
+        <div class="flow-step"><span class="step-num">1</span> 顧客チケットを開く(別システム/別タブ)。「レジで認証エラーが出ます」と書かれている</div>
+        <div class="flow-step"><span class="step-num">2</span> 本ツールを開き、検索窓に <span class="mono">レジ 認証 ログインできない</span> と入れる(または顧客本文をコピペ)</div>
+        <div class="flow-step"><span class="step-num">3</span> 必要なら左ペインで <strong>tag フィルタ</strong>(「レジ」「認証サーバー」)、<strong>category</strong>(認証) を絞る</div>
+        <div class="flow-step"><span class="step-num">4</span> 上位結果(documents → 該当 chunks)を見る。<strong>見出しパス</strong>と <strong>section_title</strong> で当たりをつける</div>
+        <div class="flow-step"><span class="step-num">5</span> 役に立った結果に「👍 採用」、外れた結果に「👎 ハズレ」をクリック</div>
+        <div class="flow-step"><span class="step-num">6</span> 同じセッション内で追加検索(例: <span class="mono">ロック解除 手順</span>)。検索履歴にひも付く</div>
+        <div class="flow-step"><span class="step-num">7</span> 対応完了。セッションに「クローズ」フラグ。後から検索履歴を辿れる</div>
+
+        <h3>「やりたい」ユースケース</h3>
+        <table>
+          <thead><tr><th>ユースケース</th><th>本ツールで提供する手段</th></tr></thead>
+          <tbody>
+            <tr><td>過去に自分が引いた検索をもう一度</td><td>「自分の検索履歴」一覧から再実行</td></tr>
+            <tr><td>先輩が同じ問題でどう引いたか見たい</td><td>「類似クエリ」サジェスト + 公開された他者の検索履歴</td></tr>
+            <tr><td>1つの顧客対応の「引いた一覧」を引き継ぎ</td><td>セッションIDを共有(URL)</td></tr>
+            <tr><td>新人がよく外す検索のパターンを知りたい</td><td>「👎多発クエリ」管理画面で集計</td></tr>
+            <tr><td>顧客文を貼ったら PII を勝手にマスクして検索してほしい</td><td>クエリ前段の Sudachi+正規表現マスク</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>3. DB 設計図(検索履歴中心)</h2>
+        <p class="lead">
+          テーブルを役割で3層に分ける。<br />
+          ① <strong>履歴層(主役)</strong> ／ ② 索引層(検索される側) ／ ③ 取り込み層(任意・オプション)。
+        </p>
+
+        <div class="er-grid">
+          <!-- 履歴層(主役) -->
+          <div class="er-card history">
+            <h4>① search_sessions <span class="tag tag-history">主役</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li>operator_id</li>
+              <li>customer_ticket_ref (任意)</li>
+              <li>opened_at / closed_at</li>
+              <li>status (open / closed / abandoned)</li>
+              <li>title (任意, "レジ認証問題対応")</li>
+            </ul>
+          </div>
+
+          <div class="er-card history">
+            <h4>② search_queries <span class="tag tag-history">主役</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li class="fk">session_id (FK→①)</li>
+              <li>operator_id</li>
+              <li>raw_query_text</li>
+              <li>sanitized_query_text</li>
+              <li>filters_json (tags/category/visibility)</li>
+              <li>query_embedding_json</li>
+              <li>executed_at</li>
+            </ul>
+          </div>
+
+          <div class="er-card history">
+            <h4>③ search_results <span class="tag tag-history">主役</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li class="fk">query_id (FK→②)</li>
+              <li class="fk">chunk_id (FK→⑦)</li>
+              <li class="fk">document_id (FK→⑥)</li>
+              <li>rank</li>
+              <li>score_vector / score_bm25 / score_rrf</li>
+            </ul>
+          </div>
+
+          <div class="er-card history">
+            <h4>④ search_outcomes <span class="tag tag-history">主役</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li class="fk">result_id (FK→③)</li>
+              <li>operator_id</li>
+              <li>verdict (helpful / not_helpful / used_in_reply)</li>
+              <li>comment</li>
+              <li>created_at</li>
+            </ul>
+          </div>
+
+          <div class="er-card history">
+            <h4>⑤ query_pii_masks <span class="tag tag-pii">PII</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li class="fk">query_id (FK→②)</li>
+              <li>pii_type / placeholder</li>
+              <li>original_value (暗号化)</li>
+              <li>span_start / span_end</li>
+            </ul>
+          </div>
+
+          <!-- 索引層 -->
+          <div class="er-card index">
+            <h4>⑥ documents <span class="tag tag-index">索引</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li>title / category / tags_json</li>
+              <li>visibility / status / source_type</li>
+              <li>created_by / approved_by</li>
+            </ul>
+          </div>
+
+          <div class="er-card index">
+            <h4>⑦ chunks <span class="tag tag-index">索引</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li class="fk">document_id (FK→⑥)</li>
+              <li>chunk_index / section_title</li>
+              <li>content / content_with_header</li>
+              <li>token_count</li>
+            </ul>
+          </div>
+
+          <div class="er-card index">
+            <h4>⑧ embeddings <span class="tag tag-index">索引</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li class="fk">chunk_id (FK→⑦)</li>
+              <li>embedding_model / version</li>
+              <li>embedding_json</li>
+            </ul>
+          </div>
+
+          <div class="er-card index">
+            <h4>⑨ chunks_fts <span class="tag tag-index">索引</span></h4>
+            <ul>
+              <li>SQLite FTS5 仮想テーブル</li>
+              <li>chunk_id, content_with_header</li>
+              <li>BM25 キーワード検索</li>
+            </ul>
+          </div>
+
+          <div class="er-card index">
+            <h4>⑩ tag_dictionary <span class="tag tag-index">索引</span></h4>
+            <ul>
+              <li class="pk">tag (PK)</li>
+              <li>group (product/operation/problem/...)</li>
+              <li>aliases_json(揺れ表記)</li>
+              <li>approved (bool)</li>
+            </ul>
+          </div>
+
+          <!-- 取り込み層(任意) -->
+          <div class="er-card raw">
+            <h4>⑪ knowledge_drafts <span class="tag tag-pii">取り込み(任意)</span></h4>
+            <ul>
+              <li class="pk">id (PK)</li>
+              <li>source_kind (resolved_ticket / manual_paste / external_doc)</li>
+              <li>sanitized_text</li>
+              <li>suggested_summary_json</li>
+              <li>review_status</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rule" style="margin-top: 18px">
+          <strong>主役は ①〜④:</strong> 検索画面の操作はすべて履歴4テーブルに残る。本ツールの価値は「履歴を後で再利用できること」にある。<br />
+          <strong>索引 ⑥〜⑩ は検索の対象:</strong> ベクトル/BM25/タグの3層検索を支える。実装は既存に近い。<br />
+          <strong>取り込み ⑪ は任意:</strong> 「対応済みチケットからナレッジを起こす」専用フローはここに分離。MVPでは無くてもよい。
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>4. 各テーブル詳細スキーマ</h2>
+
+        <h3>① search_sessions(1顧客対応 = 1セッション)</h3>
+        <table>
+          <thead><tr><th>カラム</th><th>型</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">id</td><td class="mono">TEXT PK</td><td><span class="mono">ses_{ULID}</span></td></tr>
+            <tr><td class="mono">operator_id</td><td class="mono">TEXT</td><td>検索した人</td></tr>
+            <tr><td class="mono">customer_ticket_ref</td><td class="mono">TEXT NULL</td><td>外部チケット ID(任意)</td></tr>
+            <tr><td class="mono">title</td><td class="mono">TEXT NULL</td><td>オペレーターが付ける任意タイトル</td></tr>
+            <tr><td class="mono">opened_at / closed_at</td><td class="mono">TEXT</td><td>セッション開始/終了</td></tr>
+            <tr><td class="mono">status</td><td class="mono">TEXT</td><td>open / closed / abandoned</td></tr>
+            <tr><td class="mono">shared_with_team</td><td class="mono">INTEGER</td><td>0/1。チームに公開しているか(履歴サジェスト対象になる)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>② search_queries(検索1回 = 1行)</h3>
+        <table>
+          <thead><tr><th>カラム</th><th>型</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">id</td><td class="mono">TEXT PK</td><td><span class="mono">qry_{ULID}</span></td></tr>
+            <tr><td class="mono">session_id</td><td class="mono">TEXT FK</td><td>→ search_sessions.id</td></tr>
+            <tr><td class="mono">operator_id</td><td class="mono">TEXT</td><td>(冗長だが分析しやすい)</td></tr>
+            <tr><td class="mono">raw_query_text</td><td class="mono">TEXT</td><td>オペレーターが打った/貼った元文(PII 含む可能性)</td></tr>
+            <tr><td class="mono">sanitized_query_text</td><td class="mono">TEXT</td><td>マスク後。<strong>LLM/外部APIにはこれを渡す</strong></td></tr>
+            <tr><td class="mono">filters_json</td><td class="mono">TEXT</td><td>例: <span class="mono">{"category":"認証","tags":["レジ"],"visibility":"cs_only"}</span></td></tr>
+            <tr><td class="mono">query_embedding_json</td><td class="mono">TEXT</td><td>マスク後本文をベクトル化した結果</td></tr>
+            <tr><td class="mono">executed_at</td><td class="mono">TEXT</td><td>実行時刻</td></tr>
+            <tr><td class="mono">latency_ms</td><td class="mono">INTEGER</td><td>処理時間(運用監視用)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>③ search_results(1検索の結果 N 件 = N 行)</h3>
+        <table>
+          <thead><tr><th>カラム</th><th>型</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">id</td><td class="mono">TEXT PK</td></tr>
+            <tr><td class="mono">query_id</td><td class="mono">TEXT FK</td><td>→ search_queries.id</td></tr>
+            <tr><td class="mono">chunk_id / document_id</td><td class="mono">TEXT FK</td><td>ヒットした chunk と親 doc</td></tr>
+            <tr><td class="mono">rank</td><td class="mono">INTEGER</td><td>表示順 (1 から)</td></tr>
+            <tr><td class="mono">score_vector / score_bm25 / score_rrf</td><td class="mono">REAL</td><td>3段階のスコアを残し、ランキングの分析に使う</td></tr>
+            <tr><td class="mono">snippet</td><td class="mono">TEXT</td><td>UI 表示用のハイライト断片</td></tr>
+          </tbody>
+        </table>
+
+        <h3>④ search_outcomes(役立ち評価)</h3>
+        <table>
+          <thead><tr><th>カラム</th><th>型</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">id</td><td class="mono">TEXT PK</td></tr>
+            <tr><td class="mono">result_id</td><td class="mono">TEXT FK</td><td>→ search_results.id</td></tr>
+            <tr><td class="mono">operator_id</td><td class="mono">TEXT</td></tr>
+            <tr><td class="mono">verdict</td><td class="mono">TEXT</td><td>helpful / not_helpful / used_in_reply / outdated</td></tr>
+            <tr><td class="mono">comment</td><td class="mono">TEXT NULL</td><td>任意コメント</td></tr>
+            <tr><td class="mono">created_at</td><td class="mono">TEXT</td></tr>
+          </tbody>
+        </table>
+
+        <h3>⑤ query_pii_masks(クエリに含まれた PII 復元用)</h3>
+        <p class="lead">「あとから自分のクエリを見直すとき、placeholder のままだと意味が読めない」ので、本人&同セッション内なら復元できるように暗号化保管する。</p>
+
+        <h3>⑥〜⑩ 索引側</h3>
+        <p class="lead">
+          documents / chunks / embeddings / chunks_fts は <a href="/chunking-rules.html">chunks/documents ルール案</a> に準拠。<br />
+          tag_dictionary は「正式タグ + 別名(揺れ)」を管理するマスタテーブル。検索時に別名を正式タグに寄せて使う。
+        </p>
+
+        <h3>⑪ knowledge_drafts(オプション)</h3>
+        <p class="lead">対応済みチケットを「ナレッジ化したい」と思ったオペレーターがワンクリックで投げる先。後で承認者が見て documents に昇格 / 却下する。本ツールの MVP に必須ではない。</p>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>5. クエリ側マスク設計(Sudachi + 正規表現)</h2>
+        <div class="rule">
+          <strong>マスクの対象は「オペレーターが検索窓に入れたテキスト」</strong>。<br />
+          オペレーターは顧客本文をコピペすることが多い。そのまま LLM や外部埋め込みAPI に渡すと PII 漏洩につながる。
+        </div>
+
+        <h3>5-1. Sudachi が拾うもの</h3>
+        <table>
+          <thead><tr><th>PII種類</th><th>検出方法</th><th>備考</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-pii">人名</span></td><td>形態素解析(Mode.C)で品詞「名詞-固有名詞-人名」</td><td>姓名分割される場合は連結処理</td></tr>
+            <tr><td><span class="tag tag-pii">地名・住所</span></td><td>「名詞-固有名詞-地名」+ 後続の番地/丁目/号</td><td>NEologd / Sudachi 法人辞書併用推奨</td></tr>
+            <tr><td><span class="tag tag-pii">企業名</span></td><td>「名詞-固有名詞-組織」/「株式会社+固有名詞」</td><td>業務上残したい場合は<strong>マスクOFF可</strong>のフラグを設ける</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5-2. 正規表現が拾うもの</h3>
+        <table>
+          <thead><tr><th>PII種類</th><th>正規表現(参考)</th><th>placeholder</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-pii">メール</span></td><td class="mono">[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}</td><td class="mono">[EMAIL_N]</td></tr>
+            <tr><td><span class="tag tag-pii">電話番号</span></td><td class="mono">0\d{1,4}-?\d{1,4}-?\d{3,4}</td><td class="mono">[PHONE_N]</td></tr>
+            <tr><td><span class="tag tag-pii">クレカ</span></td><td class="mono">\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}</td><td class="mono">[CARD_N]</td></tr>
+            <tr><td><span class="tag tag-pii">マイナンバー</span></td><td class="mono">\d{4}\s?\d{4}\s?\d{4}</td><td class="mono">[MYNUMBER_N]</td></tr>
+            <tr><td><span class="tag tag-pii">注文ID</span></td><td class="mono">ORD-\d{8,}</td><td class="mono">[ORDER_N]</td></tr>
+            <tr><td><span class="tag tag-pii">会員ID</span></td><td class="mono">MBR-\d{6,}</td><td class="mono">[MEMBER_N]</td></tr>
+            <tr><td><span class="tag tag-pii">生年月日/日付</span></td><td class="mono">\d{4}[年/-]\d{1,2}[月/-]\d{1,2}日?</td><td class="mono">[DATE_N]</td></tr>
+            <tr><td><span class="tag tag-pii">郵便番号</span></td><td class="mono">〒?\d{3}-?\d{4}</td><td class="mono">[ZIP_N]</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5-3. クエリ用パイプライン(オペレーターが Enter を押した瞬間に走る)</h3>
+        <div class="flow-step"><span class="step-num">1</span> 検索窓のテキストを受信(<span class="mono">raw_query_text</span>)</div>
+        <div class="flow-step"><span class="step-num">2</span> 正規表現フェーズ: メール/電話/カード/ID/日付/郵便番号を先にマスク</div>
+        <div class="flow-step"><span class="step-num">3</span> Sudachi フェーズ: 残った本文を Mode.C で形態素解析、人名/地名/組織 をマスク</div>
+        <div class="flow-step"><span class="step-num">4</span> 番号採番: 同セッション内では同じ値を同じ番号で使い回す(<span class="mono">[NAME_1]</span> が複数クエリにまたがって維持される)</div>
+        <div class="flow-step"><span class="step-num">5</span> マスク済み本文を埋め込み API / FTS / DB 検索に流す</div>
+        <div class="flow-step"><span class="step-num">6</span> search_queries.sanitized_query_text と query_pii_masks に保存</div>
+
+        <h3>5-4. 検索ワードの「正規化」も同時に行う</h3>
+        <p class="lead">
+          マスクとは別レイヤーで「揺れ吸収」をやる。クエリ→正規語に寄せると、tag マッチや BM25 のヒットが安定する。
+        </p>
+        <table>
+          <thead><tr><th>入力</th><th>正規化後</th><th>仕組み</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">POS / レジ端末</td><td class="mono">レジ</td><td>tag_dictionary.aliases_json で揺れ吸収</td></tr>
+            <tr><td class="mono">サインイン</td><td class="mono">ログイン</td></tr>
+            <tr><td class="mono">2FA</td><td class="mono">二要素認証</td></tr>
+            <tr><td class="mono">入れない / 入れません</td><td class="mono">ログイン不可</td><td>問題ラベル化(オプション)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>6. 定数定義(enum / tag 正規辞書)</h2>
+
+        <h3>6-1. Category(documents.category)</h3>
+        <p class="mono">認証 / 請求 / 解約 / 設定変更 / 配送 / 返品 / 商品仕様 / 内部</p>
+
+        <h3>6-2. Visibility / Status / SourceType</h3>
+        <table>
+          <thead><tr><th>カラム</th><th>許可値</th><th>検索対象?</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">visibility</td><td class="mono">public / cs_only / admin_only</td><td>operator のロールで絞る</td></tr>
+            <tr><td class="mono">status</td><td class="mono">draft / review / approved / archived</td><td><strong>approved のみ</strong></td></tr>
+            <tr><td class="mono">source_type</td><td class="mono">faq / manual / inquiry_summary / internal_memo / sla</td><td>重み付けに使う(faq/manual は高優先)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>6-3. PII Type(query_pii_masks.pii_type)</h3>
+        <p class="mono">name / email / phone / address / order_id / member_id / credit_card / bank_account / my_number / date / zip / organization</p>
+
+        <h3>6-4. SessionStatus / QueryVerdict</h3>
+        <table>
+          <thead><tr><th>項目</th><th>許可値</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">search_sessions.status</td><td class="mono">open / closed / abandoned</td></tr>
+            <tr><td class="mono">search_outcomes.verdict</td><td class="mono">helpful / not_helpful / used_in_reply / outdated</td></tr>
+          </tbody>
+        </table>
+
+        <h3>6-5. Tag 正規辞書(揺れ防止リスト)</h3>
+        <table>
+          <thead><tr><th>group</th><th>正式タグ</th><th>aliases(揺れ表記)</th></tr></thead>
+          <tbody>
+            <tr><td>product</td><td class="mono">レジ / 認証サーバー / Web管理画面 / モバイルアプリ / 決済端末 / 在庫管理</td><td class="mono">POS, レジ端末, 認証鯖, 管理画面, スマホアプリ</td></tr>
+            <tr><td>plan</td><td class="mono">ベーシック / プロ / エンタープライズ</td><td class="mono">basic, pro plan, ENT</td></tr>
+            <tr><td>operation</td><td class="mono">ログイン / 退会 / 解約 / 返品 / 交換 / 宛名変更</td><td class="mono">サインイン, アカウント削除, キャンセル</td></tr>
+            <tr><td>problem</td><td class="mono">ログイン不可 / 決済失敗 / 配送遅延 / 表示エラー / 文字化け</td><td class="mono">入れない, 払えない, 届かない</td></tr>
+            <tr><td>attribute</td><td class="mono">法人契約 / 個人契約 / 学生プラン</td><td class="mono">法人, 企業契約</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>7. 検索セッションサンプル × 4 件</h2>
+        <p class="lead">
+          各サンプルは <strong>① セッション開始 → ② 検索クエリ(raw → masked → filters → 結果) → ③ outcome(役立ち評価) → ④ 履歴に残る形</strong>の4段。<br />
+          オペレーターの「画面ストーリー」と「DB に何が残るか」が両方追える形にしている。
+        </p>
+
+        <!-- サンプル1 -->
+        <div class="sample">
+          <div class="sample-title">サンプル 1 / 認証 — レジで認証エラーの顧客対応</div>
+          <div class="sample-meta">operator=op_007 / customer_ticket=TCKT-99812 / session=ses_001</div>
+
+          <h4>① セッション開始</h4>
+          <div class="card history">
+            <div class="label">search_sessions INSERT</div>
+            <div class="ex mono">
+              { id="ses_001", operator_id="op_007", customer_ticket_ref="TCKT-99812", title=null, opened_at="2026-05-25T10:12:00+09:00", status="open" }
+            </div>
+          </div>
+
+          <h4>② クエリ 1 回目(顧客文をコピペ)</h4>
+          <div class="card raw">
+            <div class="label">raw_query_text(検索窓に入った文)</div>
+            <div class="ex">「[顧客名]さん([EMAIL] / [PHONE])からの問い合わせ。店舗のレジ端末で認証サーバーにログインできない、パスワード再設定済みとのこと」</div>
+          </div>
+          <div class="card pii">
+            <div class="label">sanitized_query_text(マスク後 → 検索に使う)</div>
+            <div class="ex">「<span class="pii-mark">[NAME_1]</span>さん(<span class="pii-mark">[EMAIL_1]</span> / <span class="pii-mark">[PHONE_1]</span>)からの問い合わせ。店舗のレジ端末で認証サーバーにログインできない、パスワード再設定済みとのこと」</div>
+            <div class="reason">name/email/phone を <span class="mono">query_pii_masks</span> に格納。検索本体は sanitized 側で実行。</div>
+          </div>
+          <div class="card good">
+            <div class="label">filters(左ペインの絞り込み)</div>
+            <div class="ex mono">{ "category": "認証", "tags": ["レジ", "認証サーバー"], "visibility": "cs_only", "status": "approved" }</div>
+          </div>
+          <div class="card good">
+            <div class="label">search_results(上位 3 件)</div>
+            <div class="ex mono">
+              rank=1 chunk=chk_login_07 doc=doc_login (score_rrf=0.92) "[認証 &gt; レジ端末ログイン不可 &gt; 原因切り分け] アカウントロック状態の場合は…"<br />
+              rank=2 chunk=chk_login_03 doc=doc_login (score_rrf=0.81) "[認証 &gt; パスワード再設定 &gt; 手順] 再設定リンクは発行から24時間有効…"<br />
+              rank=3 chunk=chk_mfa_02   doc=doc_mfa   (score_rrf=0.74) "[認証 &gt; 多要素認証 &gt; 失敗時] 失敗回数3回以上で…"
+            </div>
+          </div>
+
+          <h4>③ outcome(オペレーターのワンクリック評価)</h4>
+          <div class="card history">
+            <div class="label">search_outcomes INSERT</div>
+            <div class="ex mono">
+              { result_id=rank1, verdict="used_in_reply", comment="まさにこれ" }<br />
+              { result_id=rank2, verdict="helpful" }<br />
+              { result_id=rank3, verdict="not_helpful", comment="今回は MFA 関係なかった" }
+            </div>
+          </div>
+
+          <h4>④ クエリ 2 回目(同セッション内)</h4>
+          <div class="card raw">
+            <div class="label">raw_query_text</div>
+            <div class="ex">「アカウントロック 解除 管理画面 手順」</div>
+          </div>
+          <div class="card history">
+            <div class="label">DB 上の残り方(履歴として後で再利用できる)</div>
+            <div class="ex mono">
+              search_queries(2行: qry_001, qry_002) → search_results(計 6 行) → search_outcomes(計 4 行)<br />
+              すべて session_id=ses_001 で紐付き、ses_001 を開くと「この対応で何を引いたか」が時系列で出る
+            </div>
+          </div>
+        </div>
+
+        <!-- サンプル2 -->
+        <div class="sample">
+          <div class="sample-title">サンプル 2 / 請求 — 法人商号変更時の宛名変更ポリシーを引く</div>
+          <div class="sample-meta">operator=op_011 / customer_ticket=TCKT-99850 / session=ses_002</div>
+
+          <h4>① セッション開始</h4>
+          <div class="card history">
+            <div class="label">search_sessions INSERT</div>
+            <div class="ex mono">{ id="ses_002", operator_id="op_011", title="商号変更宛名差替", opened_at="...", status="open" }</div>
+          </div>
+
+          <h4>② 検索(オペレーターが自分の言葉で打つ)</h4>
+          <div class="card raw">
+            <div class="label">raw_query_text</div>
+            <div class="ex">「請求書 宛名 商号変更 法人 必要書類」</div>
+          </div>
+          <div class="card pii">
+            <div class="label">sanitized_query_text</div>
+            <div class="ex">同上(PII 無し)</div>
+            <div class="reason">オペレーターが手打ちした検索語に PII は含まれないので、マスクは0件。これも履歴として正常。</div>
+          </div>
+          <div class="card good">
+            <div class="label">filters</div>
+            <div class="ex mono">{ "category": "請求", "tags": ["請求書", "宛名変更", "法人契約"], "status": "approved" }</div>
+          </div>
+          <div class="card good">
+            <div class="label">search_results</div>
+            <div class="ex mono">
+              rank=1 chunk=chk_invoice_12 (score_rrf=0.89) "[請求 &gt; 法人宛名変更 &gt; 必要書類] 登記事項証明書または商号変更を示す公的書類のコピーを受領し…"<br />
+              rank=2 chunk=chk_invoice_05 (score_rrf=0.78) "[請求 &gt; 宛名変更 &gt; 受付条件] 契約名義人または代表者からの依頼であることを確認する。"
+            </div>
+          </div>
+          <div class="card history">
+            <div class="label">outcome</div>
+            <div class="ex mono">rank1=used_in_reply, rank2=helpful</div>
+          </div>
+          <div class="card history">
+            <div class="label">履歴の二次利用</div>
+            <div class="ex">
+              「商号変更 宛名」というクエリが <strong>op_011 / op_034 / op_052</strong> の3人で <span class="mono">used_in_reply</span> 多発<br />
+              → 管理画面で「よく使われる FAQ」としてランキング表示 / 新人向けに自動サジェスト
+            </div>
+          </div>
+        </div>
+
+        <!-- サンプル3 -->
+        <div class="sample">
+          <div class="sample-title">サンプル 3 / 返品 — 初期不良の判定基準を引く</div>
+          <div class="sample-meta">operator=op_022 / customer_ticket=TCKT-99876 / session=ses_003</div>
+
+          <h4>① クエリ(顧客文の一部を貼ったケース)</h4>
+          <div class="card raw">
+            <div class="label">raw_query_text</div>
+            <div class="ex">「鈴木健太様、注文 ORD-20260520 の決済端末、開梱時にディスプレイ破損。5/22到着。交換可否?」</div>
+          </div>
+          <div class="card pii">
+            <div class="label">sanitized_query_text</div>
+            <div class="ex">「<span class="pii-mark">[NAME_1]</span>様、注文 <span class="pii-mark">[ORDER_1]</span> の決済端末、開梱時にディスプレイ破損。<span class="pii-mark">[DATE_1]</span>到着。交換可否?」</div>
+            <div class="reason">名前 / 注文ID / 日付を自動マスク。<strong>「決済端末」「ディスプレイ破損」「交換可否」は残るので検索は機能する</strong>。</div>
+          </div>
+          <div class="card good">
+            <div class="label">filters</div>
+            <div class="ex mono">{ "category": "返品", "tags": ["決済端末", "初期不良"] }</div>
+          </div>
+          <div class="card good">
+            <div class="label">search_results</div>
+            <div class="ex mono">
+              rank=1 chunk=chk_return_03 (score_rrf=0.93) "[返品 &gt; 初期不良 &gt; 判定] 到着から7日以内かつ開梱時点での破損は『初期不良』として無償交換対象。"<br />
+              rank=2 chunk=chk_return_05 (score_rrf=0.82) "[返品 &gt; 初期不良 &gt; 必要資料] 破損箇所の写真と外箱の写真を受領する。"
+            </div>
+          </div>
+          <div class="card history">
+            <div class="label">outcome</div>
+            <div class="ex mono">rank1=used_in_reply / rank2=used_in_reply</div>
+          </div>
+        </div>
+
+        <!-- サンプル4 -->
+        <div class="sample">
+          <div class="sample-title">サンプル 4 / 解約 — 引き止め基準とデータ削除SLAを引く(複数クエリ)</div>
+          <div class="sample-meta">operator=op_004 / customer_ticket=TCKT-99901 / session=ses_004</div>
+
+          <h4>① クエリ 1(引き止めの判断材料を探す)</h4>
+          <div class="card raw">
+            <div class="label">raw_query_text</div>
+            <div class="ex">「エンタープライズ 解約 引き止め 基準」</div>
+          </div>
+          <div class="card good">
+            <div class="label">filters</div>
+            <div class="ex mono">{ "category": "解約", "tags": ["エンタープライズ"] }</div>
+          </div>
+          <div class="card good">
+            <div class="label">search_results 上位</div>
+            <div class="ex mono">
+              rank=1 chunk=chk_churn_07 "[解約 &gt; 引き止め基準] 他社統合が理由の場合、競合プラン情報の共有や移行コンサル提案を提示。即時クロージングは行わない。"
+            </div>
+          </div>
+
+          <h4>② クエリ 2(続けて SLA 系を探す)</h4>
+          <div class="card raw">
+            <div class="label">raw_query_text</div>
+            <div class="ex">「データ削除 解約後 何日 在庫データ エクスポート」</div>
+          </div>
+          <div class="card good">
+            <div class="label">search_results 上位</div>
+            <div class="ex mono">
+              rank=1 chunk=chk_data_del_02 "[解約 &gt; データ削除] 解約日から30日経過後、本番DBから契約データを削除。バックアップからは90日以内に削除。"<br />
+              rank=2 chunk=chk_export_01 "[解約 &gt; エクスポート手順] 解約日の14日前までに CSV / API でエクスポート可能。"
+            </div>
+          </div>
+
+          <h4>③ outcome と履歴上の意味</h4>
+          <div class="card history">
+            <div class="label">search_outcomes</div>
+            <div class="ex mono">qry_004_1 rank1=used_in_reply / qry_004_2 rank1=used_in_reply / qry_004_2 rank2=helpful</div>
+          </div>
+          <div class="card history">
+            <div class="label">セッションを後で開いたとき(引き継ぎ・自己レビュー)</div>
+            <div class="ex">
+              ses_004 を開くと、解約対応1件の「思考過程」が時系列で全部見える:<br />
+              ・最初に「引き止め基準」を確認<br />
+              ・次に「データ削除SLA」を確認<br />
+              ・「エクスポート手順」もついでに確認<br />
+              → 次の解約対応では <strong>このセッションを丸ごとテンプレ化</strong>して別のオペレーターが再利用できる
+            </div>
+          </div>
+        </div>
+
+        <div class="rule" style="margin-top: 16px">
+          <strong>4 サンプルの共通点:</strong><br />
+          ・<span class="mono">raw_query_text</span> はオペレーターが実際に打った/貼った文(PII あり/なしどちらもある)<br />
+          ・<span class="mono">sanitized_query_text</span> がベクトル化・LLM 渡しの対象<br />
+          ・<span class="mono">filters_json</span> でカテゴリ/タグを絞ってから検索<br />
+          ・<span class="mono">search_results</span> の <span class="mono">content_with_header</span> でオペレーターが当たりを付けやすい<br />
+          ・<span class="mono">search_outcomes</span> の verdict が <strong>本ツールの核資産</strong>(再ランキング学習 / FAQ 改善 / 新人サジェストに使う)
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>8. UI 設計案(画面イメージ)</h2>
+        <div class="ui-mock">┌─────────────────────────────────────────────────────────────────┐
+│ オペレーター検索ツール                op_007 │ ses_001 (open) │
+├──────────────┬──────────────────────────────────────────────────┤
+│ ▼ Category   │ 🔍 [ 顧客文や検索語を貼り付け / 入力              ]│
+│  [v] 認証    │     PII は自動マスクされます                       │
+│  [ ] 請求    ├──────────────────────────────────────────────────┤
+│  [ ] 解約    │ ┌─ 結果 ─────────────────────────────────────────┐│
+│  [ ] 返品    │ │ #1  [認証 > レジ端末ログイン不可 > 原因切り分け] ││
+│              │ │     アカウントロック状態の場合は…   👍 👎 ✅採用 ││
+│ ▼ Tags       │ │     score: vec 0.91 / bm25 0.88 / rrf 0.92      ││
+│  [v] レジ    │ ├──────────────────────────────────────────────────┤│
+│  [v] 認証SV  │ │ #2  [認証 > パスワード再設定 > 手順]             ││
+│  [ ] MFA     │ │     再設定リンクは発行から24時間…    👍 👎 ✅採用 ││
+│              │ │     score: vec 0.83 / bm25 0.74 / rrf 0.81      ││
+│ ▼ Source     │ ├──────────────────────────────────────────────────┤│
+│  [v] faq     │ │ #3  [認証 > 多要素認証 > 失敗時]                 ││
+│  [v] manual  │ │     失敗回数3回以上で…              👍 👎 ✅採用 ││
+│  [v] 履歴    │ └──────────────────────────────────────────────────┘│
+├──────────────┼──────────────────────────────────────────────────┤
+│ セッション   │ 過去の検索(このセッション内)                       │
+│ 履歴         │ 10:12  「[顧客名]さん…ログインできない」 3件        │
+│ ▸ ses_001    │ 10:18  「アカウントロック 解除 管理画面 手順」 2件   │
+│ ▸ ses_000    │                                                    │
+│              │ [+ 新しい検索]   [セッションを共有する]             │
+└──────────────┴──────────────────────────────────────────────────┘</div>
+        <p class="lead">
+          ・左ペイン上: <strong>絞り込みフィルタ</strong>(category / tags / source_type)<br />
+          ・左ペイン下: <strong>セッション履歴</strong>(自分のオープン中・過去・チーム共有)<br />
+          ・中央上: <strong>検索窓</strong>。Enter で PII マスク → ハイブリッド検索<br />
+          ・中央: <strong>結果カード</strong>(見出しパス + snippet + 👍👎✅)<br />
+          ・下部: 同セッション内の <strong>検索履歴(時系列)</strong>
+        </p>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>9. パイプライン全体図</h2>
+        <div class="flow-step"><span class="step-num">1</span> オペレーターが検索窓に入力(顧客文の貼付 or 自分の語)</div>
+        <div class="flow-step"><span class="step-num">2</span> 正規表現マスク(メール/電話/カード/ID/日付) → Sudachi マスク(人名/地名/組織)</div>
+        <div class="flow-step"><span class="step-num">3</span> 検索ワードの揺れ正規化(tag_dictionary.aliases_json を適用)</div>
+        <div class="flow-step"><span class="step-num">4</span> sanitized_query_text を埋め込み API に投げてベクトル化</div>
+        <div class="flow-step"><span class="step-num">5</span> ハイブリッド検索: tag/category/status フィルタ → BM25(chunks_fts) + Vector(embeddings) → <strong>RRF</strong> で合成</div>
+        <div class="flow-step"><span class="step-num">6</span> 上位 N 件を返す + search_queries / search_results / query_pii_masks に INSERT</div>
+        <div class="flow-step"><span class="step-num">7</span> オペレーターが 👍/👎/✅ をクリック → search_outcomes に INSERT</div>
+        <div class="flow-step"><span class="step-num">8</span> セッションを閉じると search_sessions.status=closed / closed_at 更新</div>
+        <div class="flow-step"><span class="step-num">9</span> 集計: 「よく used_in_reply されるクエリ」「よく not_helpful 出る chunk」を管理画面で可視化 → ナレッジ改善ループ</div>
+
+        <div class="rule" style="margin-top: 14px">
+          <strong>本ツールの価値の生まれ方:</strong><br />
+          検索1回(②〜⑥)は普通の RAG ツール。<strong>履歴と outcome を毎回貯める(⑦⑧⑨)</strong>ことで、組織の検索ノウハウがデータ化される。<br />
+          MVP は ②〜⑦ まで。⑧⑨ は後段の管理機能。
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="panel">
+        <h2>関連ページ</h2>
+        <ul>
+          <li><a href="/data-flow.html">データフロー早見表</a> — 既存実装ベースの最小説明</li>
+          <li><a href="/chunking-rules.html">chunks/documents の作り方ルール案</a> — 索引側(⑥⑦)のルール</li>
+          <li class="mono">src/m02_db.rs — 現在のスキーマ(本設計の⑥⑦⑧に相当する部分のみ実装済み)</li>
+          <li class="mono">src/m05_api/m05_api_search_text.rs — 検索 API(現在は履歴を残していない)</li>
+          <li class="mono">src/m04_embedding.rs — Sudachi ベース埋め込み(マスク処理にも Sudachi を流用予定)</li>
+        </ul>
+      </section>
+    </div>
+  </body>
+</html>

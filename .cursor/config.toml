@@ -1,0 +1,19 @@
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+
+default_permissions = "workspace-no-notes"
+
+[permissions.workspace-no-notes]
+description = "Workspace access with .notes denied."
+extends = ":workspace"
+
+[permissions.workspace-no-notes.filesystem.":workspace_roots"]
+".notes" = "deny"
+".notes/**" = "deny"
+
+[windows]
+sandbox = "unelevated"
+
+[desktop]
+browser-annotation-screenshots-mode = "necessary"

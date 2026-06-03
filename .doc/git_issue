@@ -1,0 +1,165 @@
+webhookでgitにissueってあげられる？
+
+
+できます。実装方法は「webhookが直接git
+
+nodejs azure svelete
+
+Node.js＋AzureでWebhook受信、Svelteから表示や設定、GitHub Issuesへ作成、という構成で考えます。GitHubのAPI権限まわりだけ最新仕様を確認してから、最小構成を出します。
+
+思考時間: 14s
+
+はい。正確には git自体にIssueを上げるのではなく、GitHub / GitLab / Azure DevOps のIssue管理APIにIssueを作成する形です。
+
+Node.js + Azure + Svelteなら、構成はこれがシンプルです。
+
+Svelte UI
+  ↓ POST
+Azure Functions / Node.js webhook endpoint
+  ↓ REST API
+GitHub Issues
+
+GitHubの場合、Issue作成APIは POST /repos/{owner}/{repo}/issues で、Fine-grained tokenなら対象リポジトリに対して Issues: write 権限が必要です。
+Azure Functions の HTTP trigger はWebhook受信やサーバーレスAPI用途に使えます。
+
+Azure Functions Node.js 側
+
+src/functions/createIssue.js のイメージです。
+
+const { app } = require('@azure/functions');
+
+app.http('createIssue', {
+  methods: ['POST'],
+  authLevel: 'function',
+  handler: async (request, context) => {
+    try {
+      const body = await request.json();
+
+      const title = body.title || 'New webhook issue';
+      const description = body.description || '';
+      const labels = body.labels || ['webhook'];
+
+      const owner = process.env.GITHUB_OWNER;
+      const repo = process.env.GITHUB_REPO;
+      const token = process.env.GITHUB_TOKEN;
+
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title,
+          body: description,
+          labels
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        context.error(data);
+        return {
+          status: res.status,
+          jsonBody: {
+            error: 'Failed to create GitHub issue',
+            detail: data
+          }
+        };
+      }
+
+      return {
+        status: 201,
+        jsonBody: {
+          ok: true,
+          issueUrl: data.html_url,
+          issueNumber: data.number
+        }
+      };
+    } catch (err) {
+      context.error(err);
+      return {
+        status: 500,
+        jsonBody: {
+          error: 'Internal server error'
+        }
+      };
+    }
+  }
+});
+
+Azure Functions の環境変数に入れるもの:
+
+GITHUB_OWNER=your-org-or-user
+GITHUB_REPO=your-repo
+GITHUB_TOKEN=github_pat_xxx
+
+GitHub token はコードに直書きせず、Azure App Settings / Key Vault に置くのが安全です。
+
+Svelte 側
+
+SvelteKitならフォームからAzure FunctionsへPOSTできます。SvelteKitは fetch を使って外部APIへリクエストできますし、フォーム処理には form actions も使えます。
+
+シンプルなコンポーネント例:
+
+<script>
+  let title = '';
+  let description = '';
+  let result = '';
+  let loading = false;
+
+  async function submitIssue() {
+    loading = true;
+    result = '';
+
+    const res = await fetch('https://YOUR-FUNCTION-APP.azurewebsites.net/api/createIssue?code=YOUR_FUNCTION_KEY', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        labels: ['from-svelte', 'webhook']
+      })
+    });
+
+    const data = await res.json();
+    loading = false;
+
+    if (res.ok) {
+      result = `Issue created: ${data.issueUrl}`;
+    } else {
+      result = `Error: ${data.error}`;
+    }
+  }
+</script>
+
+<input bind:value={title} placeholder="Issue title" />
+<textarea bind:value={description} placeholder="Issue description"></textarea>
+
+<button on:click={submitIssue} disabled={loading}>
+  {loading ? 'Creating...' : 'Create Issue'}
+</button>
+
+{#if result}
+  <p>{result}</p>
+{/if}
+注意点
+
+authLevel: 'function' にすると、Azure Functions の関数キー付きURLだけが呼べます。ただしフロントエンドに関数キーを埋め込むと見えるので、本番では SvelteKitのserver route / backend経由 にするか、Azure側で認証を入れるのが安全です。
+
+おすすめはこれです。
+
+Browser
+  ↓
+SvelteKit server endpoint
+  ↓
+Azure Function
+  ↓
+GitHub API
+
+または、SvelteKitを使わず Azure Static Web Apps + Azure Functions にまとめる構成でもOKです。

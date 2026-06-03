@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Rust (Axum)</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+        background: #f4f7fb;
+        color: #1f2937;
+        overflow-x: hidden;
+      }
+
+      header {
+        background: #0f172a;
+        color: #fff;
+        padding: 12px 16px;
+        font-weight: 700;
+      }
+
+      main {
+        padding: 12px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: minmax(320px, 2fr) 8px minmax(320px, 1fr);
+        gap: 12px;
+        align-items: stretch;
+      }
+      .splitter {
+        width: 8px;
+        border-radius: 6px;
+        background: linear-gradient(#cbd5e1, #94a3b8);
+        cursor: col-resize;
+        user-select: none;
+        touch-action: none;
+      }
+      .splitter:hover {
+        background: linear-gradient(#94a3b8, #64748b);
+      }
+
+      .card {
+        background: #fff;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      input,
+      select,
+      button {
+        padding: 7px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        max-width: 100%;
+      }
+
+      button {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #1d4ed8;
+      }
+
+      .pre {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        overflow: auto;
+        max-height: 240px;
+        white-space: pre-wrap;
+      }
+
+      .table-wrap {
+        border: 1px solid #dbe3ee;
+        border-radius: 6px;
+        overflow: auto;
+        max-height: 420px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #f1f5f9;
+        padding: 7px;
+        text-align: left;
+        vertical-align: top;
+        word-break: break-word;
+        min-width: 160px;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background: #f8fafc;
+      }
+
+      .debug-tree {
+        background: #fff;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 12px;
+      }
+      .viz-wrap {
+        margin-top: 8px;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 10px;
+        background: #f8fafc;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 6px;
+        border: 1px solid #dbe3ee;
+        border-radius: 999px;
+        background: #fff;
+      }
+      .swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+      }
+      .token-lane {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .template-result {
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 8px;
+        margin-bottom: 8px;
+      }
+      .template-head {
+        font-size: 12px;
+        margin-bottom: 6px;
+        color: #0f172a;
+      }
+      .template-title {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .token-card {
+        min-width: 90px;
+        max-width: 180px;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        background: #fff;
+        padding: 6px 8px;
+      }
+      .token-main {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 4px;
+        word-break: break-word;
+      }
+      .token-sub {
+        font-size: 11px;
+        color: #334155;
+        line-height: 1.25;
+        word-break: break-word;
+      }
+      .token-badges {
+        margin-top: 5px;
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .badge {
+        font-size: 10px;
+        border-radius: 999px;
+        padding: 1px 6px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .b-pii {
+        background: #fee2e2;
+        color: #7f1d1d;
+        border-color: #fca5a5;
+      }
+      .b-strict {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+      }
+      .b-cand {
+        background: #fef3c7;
+        color: #92400e;
+        border-color: #fde68a;
+      }
+
+      .debug-tree ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 16px;
+        border-left: 2px solid #dbe3ee;
+      }
+
+      .debug-tree li {
+        margin: 6px 0;
+        position: relative;
+        padding-left: 10px;
+      }
+
+      .debug-tree li::before {
+        content: "";
+        position: absolute;
+        left: -16px;
+        top: 9px;
+        width: 14px;
+        border-top: 2px solid #dbe3ee;
+      }
+
+      .node {
+        display: inline-block;
+        border: 1px solid #dbe3ee;
+        border-radius: 6px;
+        padding: 3px 6px;
+        background: #f8fafc;
+      }
+
+      @media (max-width: 1100px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+        .splitter {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+      <header>
+        RAG Rust (Axum) - SQLite 検証
+        <a
+          href="/data-flow.html"
+          style="
+            color: #bfdbfe;
+            margin-left: 12px;
+            font-size: 12px;
+            text-decoration: underline;
+          "
+          >テーブル/変換ルール早見表</a
+        >
+      </header>
+    <main>
+      <div class="card">
+        <div><strong>残存タスク</strong></div>
+        <div>
+          1) ダミー埋め込みを本物モデルに置換 2) 形態素解析強化 3) 回答生成接続
+          4) 再インデックス運用 5) 評価指標の導入
+        </div>
+      </div>
+      <div class="card">
+        <div class="controls">
+          <label>サンプル件数:</label
+          ><input
+            id="repeatCount"
+            type="number"
+            value="50"
+            min="1"
+            max="5000"
+            style="width: 110px"
+          />
+          <button onclick="initSeed()">初期化 + サンプル投入</button>
+          <button onclick="loadCounts()">件数更新</button>
+        </div>
+        <div id="counts" class="pre">未取得</div>
+      </div>
+
+      <div class="row">
+        <div class="card" id="leftPane">
+          <div class="controls">
+            <label>テーブル:</label>
+            <select id="tableName" onchange="loadTableRows()">
+              <option>documents</option>
+              <option>chunks</option>
+              <option>embeddings</option>
+              <option>raw_inquiries</option>
+              <option>rag_queries</option>
+            </select>
+            <button onclick="loadTableRows()">全件表示を更新</button>
+          </div>
+          <div id="rowsMeta" class="pre">未取得</div>
+          <div id="rowsTable" class="table-wrap"></div>
+        </div>
+
+        <div class="splitter" id="paneSplitter" title="ドラッグで幅を調整"></div>
+
+        <div class="card" id="rightPane">
+          <div><strong>日本語検索</strong></div>
+          <div style="font-size: 12px; color: #64748b; margin: 6px 0">
+            検索文は内部でベクトル化され、類似度順で候補が返ります。
+          </div>
+          <div class="controls">
+            <label>テンプレ:</label>
+            <select id="queryTemplate" onchange="applyQueryTemplate()">
+              <option value="">(手入力)</option>
+              <option value="株式会社サンプルの請求書で、宛名を山田太郎から山田花子に変更したい。手順を教えて。">請求: 法人名+人名変更</option>
+              <option value="東京支社のログイン障害で、佐藤健のアカウントがロックされています。解除の流れは？">認証: 拠点名+人名</option>
+              <option value="大阪営業所の[顧客名]に届く請求書の送付先住所を、[住所]へ変更したい。">請求: 拠点+人名+住所</option>
+              <option value="Microsoft 365に高橋美咲がサインインできません。パスワード再設定の確認手順は？">SaaS: サービス名+人名</option>
+              <option value="有限会社ブルーリーフの契約名義を鈴木次郎へ変更する場合の社内承認ルートは？">名義: 会社名+人名</option>
+              <option value="福岡本店で利用中のSalesforceアカウントについて、中村優子の二段階認証が失敗します。">認証: 地名+製品名+人名</option>
+              <option value="京都オフィスの請求先を株式会社グリーン商事に統一したい。必要な確認項目を列挙して。">請求: 地名+法人名</option>
+              <option value="[顧客名]のメールアドレス変更申請に対して、本人確認で確認すべき情報は？">本人確認: 人名</option>
+              <option value="横浜支店で発生したログイン不可の問い合わせ。対象ユーザーは伊藤舞、原因切り分け手順は？">障害対応: 地名+人名</option>
+              <option value="株式会社NorthWindの請求書宛名が旧社名のままです。現社名への更新手順を教えて。">請求: 英字法人名</option>
+              <option value="Google Workspaceで山本大輔のアカウント停止を解除したい。監査ログの確認箇所は？">監査: 製品名+人名</option>
+              <option value="神戸カスタマーセンターで、顧客名『[顧客名]』の契約情報照会依頼が来ました。対応手順は？">照会: 拠点+人名</option>
+              <option value="請求書の宛先を株式会社アオバ商会 御中にしたい。表記ルールとチェック項目は？">請求: 法人宛名表記</option>
+              <option value="Apple IDで小林直人がログインできず、端末はiPhone 16です。初動対応を教えて。">デバイス: サービス名+人名</option>
+              <option value="北海道支店の[顧客名]について、電話番号変更時の本人確認フローを確認したい。">個人情報: 地名+人名</option>
+              <option value="株式会社DeltaWorksと株式会社デルタワークスの名寄せをしたい。請求先統合の手順は？">名寄せ: 表記ゆれ法人名</option>
+              <option value="沖縄営業所で、比嘉さくらのアカウントに不正ログイン疑いがあります。対応優先順位は？">セキュリティ: 地名+人名</option>
+              <option value="仙台オフィスの請求データで、担当者が阿部亮太になっているか確認する方法は？">確認: 地名+人名</option>
+              <option value="Notionワークスペースに中島結衣がアクセスできません。SSO設定の確認ポイントは？">SSO: 製品名+人名</option>
+              <option value="鹿児島支社の顧客『[顧客名]』から宛名変更依頼。証跡として残すべき内容は？">証跡: 地名+人名</option>
+            </select>
+          </div>
+          <div class="controls">
+            <input
+              id="queryText"
+              type="text"
+              value="請求書の宛名変更の対応手順を教えて"
+              style="flex: 1; min-width: 0"
+            />
+            <button onclick="searchText()">検索</button>
+          </div>
+          <div class="controls">
+            <label>top_k:</label
+            ><input
+              id="topK"
+              type="number"
+              value="5"
+              min="1"
+              max="50"
+              style="width: 90px"
+            />
+            <label>visibility:</label>
+            <select id="visibility">
+              <option value="cs_only" selected>cs_only</option>
+              <option value="">(指定なし)</option>
+              <option value="admin_only">admin_only</option>
+            </select>
+            <button onclick="runAllTemplates()">テンプレ全件実行</button>
+          </div>
+          <div id="searchMeta" class="pre">未検索</div>
+          <div id="langStats" class="pre" style="margin-top: 8px">未検索</div>
+          <div class="viz-wrap">
+            <div style="font-size: 12px; font-weight: 700; margin-bottom: 6px">
+              トークン可視化（横並び）
+            </div>
+            <div id="tokenLegend" class="legend">未検索</div>
+            <div id="tokenViz" class="token-lane">未検索</div>
+          </div>
+          <div
+            id="searchTable"
+            class="table-wrap"
+            style="margin-top: 8px"
+          ></div>
+          <div id="processSteps" class="pre" style="margin-top: 8px">
+            未検索
+          </div>
+          <div id="debugTree" class="debug-tree" style="margin-top: 8px">
+            未検索
+          </div>
+          <div class="viz-wrap" style="margin-top: 8px">
+            <div style="font-size: 12px; font-weight: 700; margin-bottom: 6px">
+              テンプレ全件実行（横並び可視化）
+            </div>
+            <div id="allTemplateViz">未実行</div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      async function initSeed() {
+        const repeat = Number(
+          document.getElementById("repeatCount").value || 50,
+        );
+        const res = await fetch(
+          "/api/sqlite/init-seed?repeat_count=" + encodeURIComponent(repeat),
+          { method: "POST" },
+        );
+        const data = await res.json();
+        document.getElementById("counts").textContent = JSON.stringify(
+          data,
+          null,
+          2,
+        );
+        await loadCounts();
+      }
+      async function loadCounts() {
+        const res = await fetch("/api/sqlite/tables");
+        const data = await res.json();
+        document.getElementById("counts").textContent = JSON.stringify(
+          data,
+          null,
+          2,
+        );
+        await loadTableRows();
+      }
+      async function loadTableRows() {
+        const table = document.getElementById("tableName").value;
+        const res = await fetch(
+          "/api/sqlite/table/" +
+            encodeURIComponent(table) +
+            "?limit=0&offset=0",
+        );
+        const data = await res.json();
+        document.getElementById("rowsMeta").textContent = JSON.stringify(
+          {
+            table: data.table,
+            total: data.total,
+            row_count: (data.rows || []).length,
+          },
+          null,
+          2,
+        );
+        renderTable("rowsTable", data.rows || []);
+      }
+      async function searchText() {
+        const query_text = document.getElementById("queryText").value.trim();
+        const top_k = Number(document.getElementById("topK").value || 5);
+        const visibility = document.getElementById("visibility").value;
+        const payload = { query_text, top_k };
+        if (visibility) payload.visibility = visibility;
+        const res = await fetch("/api/sqlite/search-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        document.getElementById("searchMeta").textContent = JSON.stringify(
+          {
+            "検索時間(ms)": data.elapsed_ms,
+            ヒット件数: data.count,
+            入力した検索文: query_text,
+            "検索に使った質問ベクトル（内部値）": data.query_embedding,
+            解析情報: data.query_analysis,
+          },
+          null,
+          2,
+        );
+        renderLanguageStats(data.query_analysis || {});
+        renderTokenViz(data.query_analysis || {});
+        renderTable("searchTable", data.results || []);
+        document.getElementById("processSteps").textContent = JSON.stringify(
+          data.process_steps || [],
+          null,
+          2,
+        );
+        renderTree(data, query_text);
+      }
+      async function runAllTemplates() {
+        const sel = document.getElementById("queryTemplate");
+        const top_k = Number(document.getElementById("topK").value || 5);
+        const visibility = document.getElementById("visibility").value;
+        const vizEl = document.getElementById("allTemplateViz");
+        const options = Array.from(sel.options).filter((o) => o.value);
+        vizEl.innerHTML = `実行中... (${options.length}件)`;
+
+        const results = [];
+        for (const opt of options) {
+          const payload = { query_text: opt.value, top_k };
+          if (visibility) payload.visibility = visibility;
+          const res = await fetch("/api/sqlite/search-text", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          const s = (data.query_analysis || {}).language_stats_normalized || {};
+          const overall = s.overall || {};
+          const tokenPos = Array.isArray(s.token_pos) ? s.token_pos : [];
+          const piiCount = tokenPos.filter((t) => t && t.is_pii_like).length;
+          const topDoc = Array.isArray(data.results) && data.results.length
+            ? data.results[0].document_title || "-"
+            : "-";
+          results.push({
+            label: opt.text,
+            query: opt.value,
+            strictPct: (Number(overall.proper_noun_ratio || 0) * 100).toFixed(1),
+            candPct: (Number(overall.entity_like_ratio || 0) * 100).toFixed(1),
+            piiCount,
+            topDoc,
+            elapsedMs: Number(data.elapsed_ms || 0),
+            tokenPos,
+          });
+        }
+
+        vizEl.innerHTML = results
+          .map(
+            (r) => `<div class="template-result">
+              <div class="template-title">${esc(r.label)}</div>
+              <div class="template-head">
+                ${esc(r.query || "")}
+              </div>
+              ${renderTokenLegendHtml()}
+              <div class="token-lane">${buildTokenCardsHtml(r.tokenPos)}</div>
+            </div>`,
+          )
+          .join("");
+      }
+      function applyQueryTemplate() {
+        const tpl = document.getElementById("queryTemplate").value;
+        if (!tpl) return;
+        document.getElementById("queryText").value = tpl;
+      }
+      function renderLanguageStats(analysis) {
+        const s = analysis.language_stats_normalized || {};
+        if (!analysis.language_stats_normalized) {
+          document.getElementById("langStats").textContent =
+            "language_stats_normalized がレスポンスにありません。APIプロセスが古い可能性があります。サーバー再起動後に再検索してください。";
+          return;
+        }
+        const byLang = Array.isArray(s.by_language) ? s.by_language : [];
+        const lines = [];
+        lines.push("言語別 固有名詞率（normalized_query）");
+        lines.push("analyzer: " + (s.analyzer || "unknown"));
+        for (const row of byLang) {
+          const lang = row.language || "unknown";
+          const total = Number(row.token_count || 0);
+          const proper = Number(row.proper_noun_count || 0);
+          const ratio = Number(row.proper_noun_ratio || 0);
+          const cand = Number(row.entity_like_count || 0);
+          const candRatio = Number(row.entity_like_ratio || 0);
+          const pct = (ratio * 100).toFixed(1);
+          const candPct = (candRatio * 100).toFixed(1);
+          const filled = Math.min(20, Math.round(ratio * 20));
+          const candFilled = Math.min(20, Math.round(candRatio * 20));
+          lines.push(
+            `${lang.padEnd(5, " ")} strict[${"#".repeat(filled)}${"-".repeat(20 - filled)}] ${pct}% (${proper}/${total})`,
+          );
+          lines.push(
+            `${"".padEnd(5, " ")} cand  [${"#".repeat(candFilled)}${"-".repeat(20 - candFilled)}] ${candPct}% (${cand}/${total})`,
+          );
+        }
+        const overall = s.overall || {};
+        lines.push(
+          `overall strict: ${(Number(overall.proper_noun_ratio || 0) * 100).toFixed(1)}% (${overall.proper_noun_count || 0}/${overall.token_count || 0})`,
+        );
+        lines.push(
+          `overall cand  : ${(Number(overall.entity_like_ratio || 0) * 100).toFixed(1)}% (${overall.entity_like_count || 0}/${overall.token_count || 0})`,
+        );
+        if (Array.isArray(s.pos_major_counts) && s.pos_major_counts.length) {
+          lines.push("");
+          lines.push("品詞（大分類）内訳:");
+          for (const p of s.pos_major_counts) {
+            lines.push(`- ${p.pos_major}: ${p.count}`);
+          }
+        }
+        document.getElementById("langStats").textContent = lines.join("\n");
+      }
+      function renderTokenViz(analysis) {
+        const s = analysis.language_stats_normalized || {};
+        const tokenPos = Array.isArray(s.token_pos) ? s.token_pos : [];
+        const legendEl = document.getElementById("tokenLegend");
+        const vizEl = document.getElementById("tokenViz");
+        if (!tokenPos.length) {
+          legendEl.textContent = "token_pos がありません";
+          vizEl.textContent = "表示できる解析結果がありません";
+          return;
+        }
+
+        const posColor = {
+          名詞: "#dbeafe",
+          動詞: "#dcfce7",
+          形容詞: "#fae8ff",
+          助詞: "#f1f5f9",
+          助動詞: "#fef9c3",
+          記号: "#e5e7eb",
+        };
+        const defaultColor = "#ffffff";
+
+        legendEl.innerHTML = renderTokenLegendHtml();
+
+        vizEl.innerHTML = buildTokenCardsHtml(tokenPos);
+      }
+      function buildTokenCardsHtml(tokenPos) {
+        const posColor = {
+          名詞: "#dbeafe",
+          動詞: "#dcfce7",
+          形容詞: "#fae8ff",
+          助詞: "#f1f5f9",
+          助動詞: "#fef9c3",
+          記号: "#e5e7eb",
+        };
+        const defaultColor = "#ffffff";
+        return (Array.isArray(tokenPos) ? tokenPos : [])
+          .map((x) => {
+            const token = esc(x.token ?? "");
+            const pos = Array.isArray(x.pos) ? x.pos : [];
+            const major = pos[0] || "*";
+            const sub = pos[1] || "*";
+            const isStrict = Boolean(x.is_proper_noun);
+            const isCand = Boolean(x.is_entity_like);
+            const entityType = x.entity_like_type ? String(x.entity_like_type) : "";
+            const isPii = Boolean(x.is_pii_like);
+            const piiType = x.pii_type ? String(x.pii_type) : "";
+            const bg = isPii ? "#fecaca" : (posColor[major] || defaultColor);
+            const badges = [];
+            if (isPii) badges.push(`<span class="badge b-pii" title="個人情報につながる可能性がある語です。種別は email / phone / address / profile / organization / person_hint のいずれかです。">PII:${esc(piiType || "candidate")}</span>`);
+            if (isStrict) badges.push('<span class="badge b-strict" title="Sudachiの品詞で『固有名詞』と判定された語です。">strict</span>');
+            if (!isStrict && isCand)
+              badges.push(`<span class="badge b-cand" title="固有名詞の可能性がある語です。辞書上の厳密な固有名詞でなくても、名詞・カタカナ・会社表記などのルールで候補化しています。">candidate:${esc(entityType || "rule")}</span>`);
+            return `
+              <div class="token-card" style="background:${bg};">
+                <div class="token-main">${token}</div>
+                <div class="token-sub">${esc(major)} / ${esc(sub)}</div>
+                <div class="token-badges">${badges.join("")}</div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+      function renderTokenLegendHtml() {
+        return `
+          <div class="legend">
+            <span class="legend-item"><span class="swatch" style="background:#dbeafe;"></span>名詞</span>
+            <span class="legend-item"><span class="swatch" style="background:#dcfce7;"></span>動詞</span>
+            <span class="legend-item"><span class="swatch" style="background:#fae8ff;"></span>形容詞</span>
+            <span class="legend-item"><span class="swatch" style="background:#f1f5f9;"></span>助詞</span>
+            <span class="legend-item"><span class="swatch" style="background:#fef9c3;"></span>助動詞</span>
+            <span class="legend-item"><span class="swatch" style="background:#e5e7eb;"></span>記号</span>
+            <span class="legend-item"><span class="swatch" style="background:#fecaca;"></span>PII候補(赤)</span>
+            <span class="legend-item"><span class="badge b-strict" title="Sudachiの品詞で『固有名詞』と判定された語です。">strict固有名詞</span></span>
+            <span class="legend-item"><span class="badge b-cand" title="固有名詞の可能性がある語です。辞書上の厳密な固有名詞でなくても、名詞・カタカナ・会社表記などのルールで候補化しています。">候補</span></span>
+          </div>
+        `;
+      }
+      function renderTable(id, rows) {
+        const el = document.getElementById(id);
+        if (!rows.length) {
+          el.innerHTML = '<div style="padding:10px;">0件</div>';
+          return;
+        }
+        const cols = Array.from(
+          rows.reduce((s, r) => {
+            Object.keys(r).forEach((k) => s.add(k));
+            return s;
+          }, new Set()),
+        );
+        const th =
+          "<thead><tr>" +
+          cols.map((c) => `<th>${esc(c)}</th>`).join("") +
+          "</tr></thead>";
+        const tb =
+          "<tbody>" +
+          rows
+            .map(
+              (r) =>
+                "<tr>" +
+                cols.map((c) => `<td>${esc(formatCell(r[c]))}</td>`).join("") +
+                "</tr>",
+            )
+            .join("") +
+          "</tbody>";
+        el.innerHTML = `<table>${th}${tb}</table>`;
+      }
+      function renderTree(data, queryText) {
+        const d = data.debug || {};
+        const results = data.results || [];
+        const items = results
+          .map(
+            (r, i) =>
+              `<li><span class="node">Top ${i + 1}: ${esc(r.document_title)} / ${esc(r.chunk_id)} / similarity=${Number(r.similarity || 0).toFixed(4)}</span></li>`,
+          )
+          .join("");
+        document.getElementById("debugTree").innerHTML = `
+        <ul><li><span class="node">入力: 「${esc(queryText)}」</span><ul>
+          <li><span class="node">query_text -> query_embedding</span></li>
+          <li><span class="node">approved候補: ${d.candidate_count ?? 0}件</span></li>
+          <li><span class="node">visibility: ${esc(d.visibility || "(指定なし)")}</span></li>
+          <li><span class="node">類似度計算後に上位 ${d.returned_count ?? 0}件返却（top_k=${d.top_k ?? results.length}）</span><ul>${items || '<li><span class="node">一致なし</span></li>'}</ul></li>
+        </ul></li></ul>`;
+      }
+      function formatCell(v) {
+        return typeof v === "object" ? JSON.stringify(v) : String(v ?? "");
+      }
+      function esc(s) {
+        return String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+      loadCounts();
+      initPaneSplitter();
+
+      function initPaneSplitter() {
+        const row = document.querySelector(".row");
+        const splitter = document.getElementById("paneSplitter");
+        if (!row || !splitter) return;
+
+        let dragging = false;
+        let startX = 0;
+        let startLeftWidth = 0;
+        let rowWidth = 0;
+
+        const onMove = (clientX) => {
+          if (!dragging) return;
+          const dx = clientX - startX;
+          const nextLeft = Math.max(320, Math.min(startLeftWidth + dx, rowWidth - 320 - 8));
+          const nextRight = rowWidth - nextLeft - 8;
+          row.style.gridTemplateColumns = `${nextLeft}px 8px ${nextRight}px`;
+        };
+
+        splitter.addEventListener("mousedown", (e) => {
+          if (window.matchMedia("(max-width: 1100px)").matches) return;
+          dragging = true;
+          startX = e.clientX;
+          startLeftWidth = document.getElementById("leftPane").getBoundingClientRect().width;
+          rowWidth = row.getBoundingClientRect().width;
+          document.body.style.cursor = "col-resize";
+          document.body.style.userSelect = "none";
+        });
+
+        window.addEventListener("mousemove", (e) => onMove(e.clientX));
+        window.addEventListener("mouseup", () => {
+          dragging = false;
+          document.body.style.cursor = "";
+          document.body.style.userSelect = "";
+        });
+      }
+    </script>
+  </body>
+</html>

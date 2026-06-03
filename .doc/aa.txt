@@ -1,0 +1,19 @@
+もう一回やりました。今回は Serenaあり側で read_memory が実際に使えています。
+計測結果
+Serenaあり: 36377 -> 852857、差分 816480
+Serenaなし: 0 -> 537542、差分 537542
+差: Serenaあり側が 278938 多い
+親スレッド: 6034921 -> 7027475、差分 992554
+Serenaあり側が読んだ memory
+core
+conventions
+tech_stack
+task_completion
+結果
+今回は両方とも、最初の実装 slice は ゲーム内ウィンドウ emission の material 生成共通化 で一致しました。
+違いとしては、Serenaあり側は scene_core に pure 計算、Bvy_* に Bevy 型変換、*_SUB.rs に pure logic を足さない、などの境界説明が memory 名つきで明確でした。Serenaなし側もかなり良い結論でしたが、memory に基づくプロジェクト固有ルールの説明は薄めです。
+今回の見方
+コスト: Serenaありの方が 278938 多い
+品質: Serenaありはプロジェクト規約との接続が強い
+結論: 「記憶が必要な設計・実装方針決め」では Serena の価値は出る。ただし短い読み取り調査ではコストは上がりやすい
+記録は .tmp_ai/serena_token_usage.md に追記済みです。コード編集・cargo 実行はしていません。

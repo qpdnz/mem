@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chunks / documents の作り方ルール案</title>
+    <style>
+      :root {
+        --bg: #dfe9f7;
+        --panel: #ffffff;
+        --ink: #10243e;
+        --muted: #4d6178;
+        --line: #b9c9dc;
+        --accent: #0b5fff;
+        --accent-soft: #eaf1ff;
+        --good: #047857;
+        --good-soft: #ecfdf5;
+        --good-border: #6ee7b7;
+        --bad: #b91c1c;
+        --bad-soft: #fef2f2;
+        --bad-border: #fca5a5;
+        --warn: #b45309;
+        --warn-soft: #fff7ed;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 90% -20%, #c8dcff 0%, transparent 35%),
+          radial-gradient(circle at -10% 20%, #d7f1e8 0%, transparent 30%),
+          var(--bg);
+        font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+        line-height: 1.6;
+      }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 18px 60px; }
+      .hero {
+        background: linear-gradient(135deg, #0b1b34 0%, #1d3f70 70%, #245c9d 100%);
+        color: #fff;
+        border-radius: 14px;
+        padding: 22px 24px;
+      }
+      .hero h1 { margin: 0 0 8px; font-size: 26px; }
+      .hero p { margin: 0; color: #d4e3ff; font-size: 14px; }
+      .panel {
+        background: var(--panel);
+        border: 3px solid #8ea7c4;
+        border-radius: 14px;
+        padding: 20px 22px;
+        box-shadow: 0 1px 0 #b4c4d6;
+        margin-top: 18px;
+      }
+      h2 {
+        margin: 0 0 14px;
+        font-size: 22px;
+        font-weight: 900;
+        color: #0d2b52;
+      }
+      h3 {
+        margin: 20px 0 10px;
+        font-size: 17px;
+        font-weight: 800;
+        color: #123766;
+      }
+      p { margin: 8px 0; }
+      .lead { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+      .mono { font-family: Consolas, "Courier New", monospace; font-size: 13px; }
+      .tag {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        margin-right: 4px;
+      }
+      .rule {
+        border-left: 5px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        border-radius: 0 8px 8px 0;
+        margin: 14px 0;
+      }
+      .rule strong { color: var(--accent); }
+      .pair {
+        display: grid;
+        gap: 12px;
+        margin: 12px 0;
+      }
+      @media (min-width: 760px) {
+        .pair { grid-template-columns: 1fr 1fr; }
+      }
+      .card {
+        border-radius: 10px;
+        padding: 14px 16px;
+        border: 3px solid;
+      }
+      .card .label {
+        font-weight: 900;
+        font-size: 13px;
+        margin-bottom: 8px;
+        letter-spacing: 0.04em;
+      }
+      .card .ex {
+        font-size: 14px;
+        background: #fff;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border: 1px dashed #c9d4e3;
+      }
+      .card.bad {
+        background: var(--bad-soft);
+        border-color: var(--bad-border);
+      }
+      .card.bad .label { color: var(--bad); }
+      .card.good {
+        background: var(--good-soft);
+        border-color: var(--good-border);
+      }
+      .card.good .label { color: var(--good); }
+      .reason {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .reason strong { color: var(--ink); }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+      th, td {
+        border-bottom: 2px solid #b7c9dc;
+        border-right: 1px solid #cad7e5;
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th { background: #e8f0fb; color: #123766; font-weight: 900; }
+      .check {
+        background: #f6faff;
+        border: 2px solid #b9cee8;
+        border-radius: 10px;
+        padding: 14px 18px;
+      }
+      .check ul { margin: 0; padding-left: 20px; }
+      .check li { margin: 6px 0; }
+      .nav { font-size: 13px; color: var(--muted); margin-top: 10px; }
+      .nav a { color: #0a4ecf; margin-right: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1>chunks / documents の作り方ルール案</h1>
+        <p>「どこで区切る？」「タイトルどう書く？」を、良い例 / 悪い例で見ながら決めるためのページです。</p>
+        <div class="nav">
+          <a href="/data-flow.html">← データフロー早見表に戻る</a>
+          <a href="/cs-rag-design.html" style="margin-left: 12px;">お客様対応RAG 新規設計書 →</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>なんでルールがいるの？</h2>
+        <p class="lead">
+          いま <span class="mono">src/m03_seed.rs</span> は人が手で文を切って入れているだけで、書き方のルールがありません。<br />
+          書き方がバラバラだと、検索精度がブレるし、将来 AI に自動でチャンク化させるとき(=PIIマスキング後の問い合わせを自動投入する構想)に、何を AI に守らせるかが決まりません。<br />
+          だから「人が書くときも AI に書かせるときも同じルール」を1つ決めておきます。
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2><span class="tag">chunks</span> 1つを作るルール</h2>
+        <p class="lead">RAG 検索は「ヒットした chunk だけ」を AI に渡します。だから <strong>chunk 単体で意味が完結している</strong>ことがすごく大事。</p>
+
+        <div class="rule">
+          <strong>ルール 1.</strong> 1 chunk = <strong>「1つの判断 + その対応」</strong>。条件と対応はセットで入れる。
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ 悪い例（条件と対応をバラバラに分けた）</div>
+            <div class="ex">chunk_a: 「顧客がログインできない場合は、」</div>
+            <div class="ex">chunk_b: 「メールアドレスを確認する。」</div>
+            <div class="reason"><strong>なぜダメ？</strong> chunk_b だけ取れたとき、いつメールを確認するのか分からない。AIが「メールを確認しましょう」としか答えられない。</div>
+          </div>
+          <div class="card good">
+            <div class="label">○ 良い例（条件と対応をセットで）</div>
+            <div class="ex">chunk: 「顧客がログインできない場合は、メールアドレス・アカウント状態・パスワード再設定履歴を確認する。」</div>
+            <div class="reason"><strong>なぜ良い？</strong> 1つ取ってくるだけで「いつ」「何を」が両方分かる。AIが状況に合わせた回答を作れる。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 2.</strong> 目安は <strong>50〜200字 / 1〜3文</strong>。短すぎず長すぎず。
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ 悪い例（細かすぎ）</div>
+            <div class="ex">chunk_a: 「ログインできない。」</div>
+            <div class="ex">chunk_b: 「メールを確認。」</div>
+            <div class="ex">chunk_c: 「ロックを確認。」</div>
+            <div class="reason"><strong>なぜダメ？</strong> 1チャンクあたりの情報が少なすぎて、ベクトル化しても他の似た短文と区別がつかない(=検索でヒットしない)。</div>
+          </div>
+          <div class="card bad">
+            <div class="label">✗ 悪い例（大きすぎ）</div>
+            <div class="ex">chunk: 「ログインできない時のマニュアル。本人確認の流れ。メール確認、アカウント状態、再設定履歴、ロック解除、多要素認証、サポート連絡先、エスカレーション基準、SLA、過去事例…(1000字)」</div>
+            <div class="reason"><strong>なぜダメ？</strong> 1チャンクに話題が多すぎて、ベクトルが平均化されて何で検索してもボンヤリ当たる。AI も「何に答えるべきか」迷う。</div>
+          </div>
+        </div>
+        <div class="pair">
+          <div class="card good" style="grid-column: 1 / -1;">
+            <div class="label">○ 良い例（ちょうどいい粒度に揃える）</div>
+            <div class="ex">chunk_001: 「顧客がログインできない場合は、メールアドレス・アカウント状態・パスワード再設定履歴を確認する。」</div>
+            <div class="ex">chunk_002: 「アカウントロック状態の場合は、本人確認後に管理画面からロックを解除する。」</div>
+            <div class="ex">chunk_003: 「多要素認証の失敗が3回以上の場合は、本人確認後に二要素設定をリセットする。」</div>
+            <div class="reason"><strong>ポイント:</strong> どれも「条件 + 対応」が1セット。50〜120字くらい。並べると手順マニュアルとしても読める。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 3.</strong> chunk に <strong>個人情報(PII)を入れない</strong>。氏名・メール・電話番号・住所などはマスキングしてから chunks に入れる。
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ 悪い例（PIIそのまま）</div>
+            <div class="ex">chunk: 「[顧客名]([EMAIL])からログイン不可の問い合わせ。パスワード再設定後も入れない。」</div>
+            <div class="reason"><strong>なぜダメ？</strong> RAG 検索でヒットすると、別人の対応中に他の顧客の個人情報が AI に渡る。情報漏洩。</div>
+          </div>
+          <div class="card good">
+            <div class="label">○ 良い例（マスキング済み）</div>
+            <div class="ex">chunk: 「顧客からログイン不可の問い合わせ。パスワード再設定後もログインできない場合は、再設定リンクの有効期限と発行履歴を確認する。」</div>
+            <div class="reason"><strong>ポイント:</strong> 生 PII は <span class="mono">raw_inquiries</span> に隔離。chunks には「対応に必要な情報」だけ入れる。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 4.</strong> <span class="mono">chunk_index</span> は <strong>同じ document 内で 1 から連番</strong>。手順の順序を保つ。
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2><span class="tag">documents</span> 1つを作るルール</h2>
+        <p class="lead">document は「目次の見出し」のようなもの。chunks の親なので、ここがブレると後で整理できなくなります。</p>
+
+        <div class="rule">
+          <strong>ルール 1.</strong> 1 document = <strong>1トピック</strong>。1つの Q&A、1つの対応マニュアルに対応する粒度。
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ 悪い例（詰め込みすぎ）</div>
+            <div class="ex">
+              doc_xxx: 「認証関連全般」<br />
+              chunks: [ログイン不可, パスワード再設定, 二要素認証解除, 退会, アカウント削除, ...]
+            </div>
+            <div class="reason"><strong>なぜダメ？</strong> 検索結果に「認証関連」しか出ないので、結局どの手順か分からない。category と被って情報が二重になる。</div>
+          </div>
+          <div class="card good">
+            <div class="label">○ 良い例（1トピック1ドキュメント）</div>
+            <div class="ex">
+              doc_002: 「ログイン不可の対応」<br />
+              doc_007: 「パスワード再設定の手順」<br />
+              doc_010: 「二要素認証の解除手順」
+            </div>
+            <div class="reason"><strong>ポイント:</strong> タイトルだけ見れば「これは何の手順か」がすぐ分かる粒度。chunks はその中の細かいステップになる。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 2.</strong> <span class="mono">title</span> は <strong>「対象 + 操作 / 問題」</strong>の形に揃える。自由記述しない。
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ 悪い例（書き手によってブレる）</div>
+            <div class="ex">「対応マニュアルver2」</div>
+            <div class="ex">「顧客対応(2024年最新)」</div>
+            <div class="ex">「メモ」</div>
+            <div class="reason"><strong>なぜダメ？</strong> タイトルから内容が読めない。検索しても title hit が役に立たない。</div>
+          </div>
+          <div class="card good">
+            <div class="label">○ 良い例（パターン固定）</div>
+            <div class="ex">「ログイン不可の対応」<span class="mono" style="color:#666"> ← 対象「ログイン不可」+ 操作「対応」</span></div>
+            <div class="ex">「請求書宛名の変更手順」<span class="mono" style="color:#666"> ← 対象「請求書宛名」+ 操作「変更手順」</span></div>
+            <div class="ex">「退会希望時の対応」<span class="mono" style="color:#666"> ← 対象「退会希望」+ 操作「対応」</span></div>
+            <div class="reason"><strong>ポイント:</strong> 「〜の対応」「〜の手順」「〜の変更手順」など末尾を揃えると並べたとき読みやすい。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 3.</strong> <span class="mono">category</span> / <span class="mono">visibility</span> / <span class="mono">status</span> は <strong>決まった値からだけ選ぶ</strong>(enum 化)。自由記述しない。
+        </div>
+
+        <h3>category の決め打ち候補</h3>
+        <table>
+          <thead>
+            <tr><th>値</th><th>意味</th><th>例</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">認証</td><td>ログイン・パスワード・二要素まわり</td><td>ログイン不可、パスワード再設定</td></tr>
+            <tr><td class="mono">請求</td><td>請求書・支払い・宛名・金額</td><td>請求書宛名変更、支払い方法変更</td></tr>
+            <tr><td class="mono">解約</td><td>退会・解約・契約終了</td><td>退会希望時の対応</td></tr>
+            <tr><td class="mono">設定変更</td><td>アカウント設定・通知・プロフィール</td><td>メールアドレス変更</td></tr>
+            <tr><td class="mono">内部</td><td>社内向け・未承認メモ</td><td>営業引継ぎメモ</td></tr>
+          </tbody>
+        </table>
+        <p class="reason" style="margin-top: 8px"><strong>悪い例:</strong> 「認証関連」「ログイン系」「auth」「セキュリティ」が混ざる → 同じ意味で4種類できて検索が壊れる。</p>
+
+        <h3>visibility / status の決め打ち候補</h3>
+        <table>
+          <thead>
+            <tr><th>カラム</th><th>許可する値</th><th>意味</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">visibility</td><td class="mono">cs_only / admin_only / public</td><td>誰まで検索結果に出していいか</td></tr>
+            <tr><td class="mono">status</td><td class="mono">draft / approved / archived</td><td>承認状態。RAG検索は approved だけ対象にする想定</td></tr>
+            <tr><td class="mono">source_type</td><td class="mono">faq / memo / inquiry_summary</td><td>元データの種類。inquiry_summary は AI 要約由来</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>タグ付け(<span class="tag">tags</span>)のルール</h2>
+        <p class="lead">
+          category(大分類1個)だけでは「どの製品の話か」「どのシステムの話か」が分からない。<br />
+          そこで <strong>tag</strong>(細かいキーワードを複数つけられる) を使って絞り込めるようにする。
+        </p>
+
+        <h3>category と tag は別物</h3>
+        <table>
+          <thead>
+            <tr><th></th><th>category</th><th>tags</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>役割</td>
+              <td>大分類(フォルダ的)</td>
+              <td>細かいキーワード(複数つけられる)</td>
+            </tr>
+            <tr>
+              <td>個数</td>
+              <td>1ドキュメントに <strong>1個</strong></td>
+              <td>1ドキュメントに <strong>1〜5個</strong></td>
+            </tr>
+            <tr>
+              <td>値の決め方</td>
+              <td>enum で決め打ち(認証 / 請求 / 解約…)</td>
+              <td>固定はしないが「よく使うリスト」を共有して揺れを防ぐ</td>
+            </tr>
+            <tr>
+              <td>例</td>
+              <td class="mono">"認証"</td>
+              <td class="mono">["レジ", "認証サーバー", "ログイン不可"]</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>具体例で見る</h3>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ category だけだと…</div>
+            <div class="ex">
+              doc_a: title="ログイン不可の対応", category="認証"<br />
+              doc_b: title="ログイン不可の対応", category="認証"<br />
+              doc_c: title="ログイン不可の対応", category="認証"
+            </div>
+            <div class="reason"><strong>問題:</strong> 全部「ログイン不可 / 認証」なので、レジ用なのかWeb管理画面用なのか区別できず、検索でどれが当たるか運任せ。</div>
+          </div>
+          <div class="card good">
+            <div class="label">○ tag をつけると区別できる</div>
+            <div class="ex">
+              doc_a: tags=["レジ", "認証サーバー"]<br />
+              doc_b: tags=["Web管理画面", "二要素認証"]<br />
+              doc_c: tags=["モバイルアプリ", "パスワード再設定"]
+            </div>
+            <div class="reason"><strong>結果:</strong> 質問に「レジが…」と書かれていたら doc_a を優先表示できる。誤ヒットが減る。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 1.</strong> tag は <strong>1〜5個</strong>。多すぎると意味が薄れる。
+        </div>
+        <div class="rule">
+          <strong>ルール 2.</strong> tag は <strong>短い名詞</strong>(製品名 / システム名 / 操作対象)。文にしない。
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ 悪い tag</div>
+            <div class="ex mono">["レジでログインができない時の対応について"]</div>
+            <div class="ex mono">["重要", "至急", "やばい"]</div>
+            <div class="reason">文になっている / 主観的で内容を表していない → 検索の絞り込みに使えない。</div>
+          </div>
+          <div class="card good">
+            <div class="label">○ 良い tag</div>
+            <div class="ex mono">["レジ", "認証サーバー", "ログイン不可"]</div>
+            <div class="ex mono">["請求書", "宛名変更", "法人契約"]</div>
+            <div class="reason">短い名詞で、「何に関する手順か」が一目で分かる。</div>
+          </div>
+        </div>
+
+        <div class="rule">
+          <strong>ルール 3.</strong> よく使う tag は <strong>共有リストにして揺れを防ぐ</strong>。<br />
+          (例: 「レジ」と「POS」と「レジ端末」が混ざると、検索しても全部当たらない)
+        </div>
+
+        <h3>よく使う tag リスト案(揺れ防止用)</h3>
+        <table>
+          <thead>
+            <tr><th>分野</th><th>使う tag</th><th>避ける表記(揺れ)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>製品 / システム</td>
+              <td class="mono">レジ / 認証サーバー / Web管理画面 / モバイルアプリ / 決済端末</td>
+              <td class="mono">POS, レジ端末, 認証鯖, 管理画面, スマホアプリ</td>
+            </tr>
+            <tr>
+              <td>操作対象</td>
+              <td class="mono">ログイン / パスワード / 二要素認証 / アカウントロック / 請求書 / 宛名</td>
+              <td class="mono">サインイン, PW, 2FA, ロック状態, インボイス, 宛先</td>
+            </tr>
+            <tr>
+              <td>状況 / 問題</td>
+              <td class="mono">ログイン不可 / 再設定不可 / ロック解除 / 変更依頼</td>
+              <td class="mono">入れない, リセットできない, アンロック, 変更したい</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>保存先(スキーマ案)</h3>
+        <p class="lead">いまの schema には専用カラムが無いので、入れるなら以下のどれか。</p>
+        <table>
+          <thead>
+            <tr><th>案</th><th>方式</th><th>メリット / デメリット</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A(簡単)</td>
+              <td class="mono">documents に tags TEXT カラム追加 → JSON文字列で保存<br />例: '["レジ","認証サーバー"]'</td>
+              <td>実装が一番楽。LIKE 検索でも引ける。<br />厳密な絞り込みクエリはやや書きづらい。</td>
+            </tr>
+            <tr>
+              <td>B(きれい)</td>
+              <td class="mono">document_tags 関連テーブルを新設(document_id, tag)の many-to-many</td>
+              <td>SQL で集計しやすい / インデックス効きやすい。<br />テーブルが増える / migration 必要。</td>
+            </tr>
+            <tr>
+              <td>C(暫定)</td>
+              <td class="mono">既存の chunks.metadata_json に詰める(今は固定で {"source":"seed"})</td>
+              <td>schema 変更不要。<br />本来 chunk 単位の付帯情報用なので意味が混ざる。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="reason" style="margin-top:8px"><strong>おすすめ:</strong> まず A で documents.tags を追加 → 運用が回って件数が増えてきたら B に移行。</p>
+
+        <h3>検索でどう使うか</h3>
+        <div class="rule">
+          ベクトル検索だけでなく、<strong>tag が一致するドキュメントを優先する</strong>ハイブリッド検索にする。
+        </div>
+        <div class="card good">
+          <div class="label">○ 流れの例</div>
+          <div class="ex">
+            質問: 「レジの認証サーバーにログインできません」<br />
+            ① 質問文から tag 候補を抽出 → ["レジ", "認証サーバー", "ログイン不可"]<br />
+            ② documents.tags が↑のどれかにヒットする document に絞り込み<br />
+            ③ 絞り込んだ範囲で chunks をベクトル検索<br />
+            ④ tag ヒット数で score にボーナス(例: +0.1 / 一致 tag)
+          </div>
+          <div class="reason"><strong>狙い:</strong> ベクトル類似度だけだと「ログイン不可」全般がヒットしてしまうが、tag で「レジ」に絞れるので答えが正確になる。</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>1つの問い合わせをルール通りに変換した例</h2>
+        <p class="lead">「[顧客名]さんからのログイン不可の問い合わせ」を、ルールに沿って document + chunks にしてみる。</p>
+
+        <h3>① 元の問い合わせ(PIIあり)</h3>
+        <div class="card bad">
+          <div class="label">RAW(raw_inquiries.raw_text に保管 / 検索対象外)</div>
+          <div class="ex">
+            「[顧客名]([EMAIL], [PHONE])です。<br />
+            昨日からログインできません。パスワードを再設定しても入れません。<br />
+            アカウントがロックされているかもしれません。確認お願いします。」
+          </div>
+        </div>
+
+        <h3>② PIIマスキング</h3>
+        <div class="card good">
+          <div class="label">sanitized(raw_inquiries.sanitized_text)</div>
+          <div class="ex">
+            「[NAME]([EMAIL], [PHONE]) からログイン不可の問い合わせ。<br />
+            パスワード再設定後もログインできない。アカウントロックの可能性あり。」
+          </div>
+        </div>
+
+        <h3>③ AI要約 → JSON</h3>
+        <div class="card good">
+          <div class="label">AI出力(これを documents / chunks に流す)</div>
+          <div class="ex mono">
+            {<br />
+            &nbsp;&nbsp;"title": "パスワード再設定後もログイン不可の対応",<br />
+            &nbsp;&nbsp;"category": "認証",<br />
+            &nbsp;&nbsp;"visibility": "cs_only",<br />
+            &nbsp;&nbsp;"status": "approved",<br />
+            &nbsp;&nbsp;"source_type": "inquiry_summary",<br />
+            &nbsp;&nbsp;"tags": ["認証サーバー", "ログイン不可", "パスワード再設定", "アカウントロック"],<br />
+            &nbsp;&nbsp;"chunks": [<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;"パスワード再設定後もログインできない場合は、再設定リンクの有効期限と発行履歴を確認する。",<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;"アカウントロック状態の場合は、本人確認後に管理画面からロックを解除する。",<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;"解除後もログイン不可の場合は、多要素認証の失敗回数を確認しリセットを検討する。"<br />
+            &nbsp;&nbsp;]<br />
+            }
+          </div>
+        </div>
+
+        <h3>④ テーブルに流し込む</h3>
+        <table>
+          <thead>
+            <tr><th>テーブル</th><th>入る値</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag">documents</span></td>
+              <td class="mono">{ id="doc_ext_001", title="パスワード再設定後もログイン不可の対応", category="認証", visibility="cs_only", status="approved", source_type="inquiry_summary", tags='["認証サーバー","ログイン不可","パスワード再設定","アカウントロック"]' }</td>
+            </tr>
+            <tr>
+              <td><span class="tag">chunks</span></td>
+              <td class="mono">
+                { id="chunk_ext_001_1", document_id="doc_ext_001", chunk_index=1, content="パスワード再設定後も…確認する。" }<br />
+                { id="chunk_ext_001_2", document_id="doc_ext_001", chunk_index=2, content="アカウントロック状態の場合は…解除する。" }<br />
+                { id="chunk_ext_001_3", document_id="doc_ext_001", chunk_index=3, content="解除後もログイン不可の場合は…検討する。" }
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag">embeddings</span></td>
+              <td class="mono">各 chunk を5次元ベクトルにして JSON 文字列で保存(chunk 1つにつき1行)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>チェックリスト(これだけ守ればOK)</h2>
+        <div class="check">
+          <h3 style="margin-top:0"><span class="tag">chunks</span> を書くとき</h3>
+          <ul>
+            <li>条件(〜の場合は)と対応(〜する)を同じ chunk に入れたか？</li>
+            <li>長さは 50〜200字くらいに収まっているか？(1〜3文)</li>
+            <li>個人情報(氏名・メール・電話・住所など)が入っていないか？</li>
+            <li>chunk 単体で読んで意味が通るか？(前後の chunk を読まないと分からない、になっていないか)</li>
+            <li>chunk_index は document 内で 1 から連番になっているか？</li>
+          </ul>
+          <h3><span class="tag">documents</span> を書くとき</h3>
+          <ul>
+            <li>1 document = 1トピックに絞れているか？(認証関連全般、みたいになっていないか)</li>
+            <li>title は「対象 + 操作 / 問題」の形になっているか？(〜の対応 / 〜の手順)</li>
+            <li>category は決められた enum から選んでいるか？(自由記述していないか)</li>
+            <li>visibility / status / source_type も決められた値から選んでいるか？</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>2026年版 RAG ベストプラクティス(Web資料からの追補)</h2>
+        <p class="lead">
+          このページで書いてきたルールが、業界の最新動向と合っているかを Web 資料(2026年版)で確認した結果のまとめ。<br />
+          結論: <strong>「タグ/メタデータでの絞り込み」「セマンティック分割」「ハイブリッド検索」</strong> が現在の主流。今のルール案は方向性として合っているが、いくつか強化ポイントあり。
+        </p>
+
+        <h3>① チャンク戦略 — 単純な「句点で割る」だけだと弱い</h3>
+        <table>
+          <thead>
+            <tr><th>戦略</th><th>内容</th><th>適性</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">Fixed-size</td>
+              <td>決まったトークン数で機械的に分割(例: 512トークン)</td>
+              <td>FAQ・短い均質な文書には十分。長文には不向き</td>
+            </tr>
+            <tr>
+              <td class="mono">Recursive</td>
+              <td>段落 → 文 → 句、と階層的に分けて目標サイズに収める</td>
+              <td>汎用的でバランス良し。LlamaIndex などの標準</td>
+            </tr>
+            <tr>
+              <td class="mono">Semantic</td>
+              <td>文をベクトル化し、意味の切れ目で分割する</td>
+              <td>2026年 Kapa.ai ベンチで <strong>fixed比 +18% の検索精度</strong>。長文プロセに有効</td>
+            </tr>
+            <tr>
+              <td class="mono">Hierarchical</td>
+              <td>「小さいチャンクで探す → 親の大きいチャンクを LLM に渡す」の2階層</td>
+              <td><strong>2025-2026 で最も普及している本番パターン</strong>。精度と文脈量を両立</td>
+            </tr>
+            <tr>
+              <td class="mono">Structure-based</td>
+              <td>マニュアルの見出し階層(章・節)に沿って分割</td>
+              <td>このプロジェクト(手順マニュアル)に最も合う</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="rule">
+          <strong>このプロジェクトへの示唆:</strong> 「句点で1手順=1チャンク」は Structure-based の簡易版。長期的には「親 document = 大チャンク / 子 chunks = 細チャンク」の <strong>Hierarchical</strong> 構造に寄せる価値あり(検索は小チャンクで、AI に渡すのは親文書全体)。
+        </div>
+
+        <h3>② チャンクの先頭に「見出しパス」を入れると検索精度が跳ねる</h3>
+        <div class="card good">
+          <div class="label">○ Web資料で「最高 ROI の改善」と言われている手法</div>
+          <div class="ex">
+            content: 「<strong>[認証 &gt; ログイン不可 &gt; パスワード再設定後]</strong> 再設定リンクの有効期限と発行履歴を確認する。」
+          </div>
+          <div class="reason">
+            <strong>効果:</strong> chunk 単体でも「どの章のどの節か」がベクトルに乗るので、似た文面の他チャンクと混ざらない。<br />
+            <strong>実装:</strong> chunks.content に保存する文字列の先頭に <span class="mono">[category &gt; document.title &gt; section_title]</span> を付けるだけ。数行で実装できる。
+          </div>
+        </div>
+
+        <h3>③ オーバーラップ(隣接チャンクの重複)について</h3>
+        <p class="lead">
+          従来の定石: 10〜20% のオーバーラップを入れる(500トークンなら 50-100 トークン分を次のチャンクと共有)。<br />
+          ただし <strong>2026年1月の体系的調査</strong>では「オーバーラップは測定可能な精度向上をもたらさず、インデックスコストだけ増える」という結果も出ている。<br />
+          → このプロジェクトのように「1手順 = 1完結チャンク」なら <strong>オーバーラップなしで OK</strong>。
+        </p>
+
+        <h3>④ メタデータ(タグ含む)でのフィルタリングは検索の前段に置く</h3>
+        <div class="rule">
+          <strong>2026年の定説:</strong> ベクトル検索の <strong>前に</strong> メタデータでフィルタして候補を絞る → 残った中でベクトル類似度を計算する。<br />
+          (例: 「engineering 部門の質問」なら engineering 文書だけに絞ってからベクトル比較)
+        </div>
+        <div class="pair">
+          <div class="card bad">
+            <div class="label">✗ ベクトル検索だけ</div>
+            <div class="ex">
+              質問「レジが認証エラー」<br />
+              → 全 chunks にベクトル比較<br />
+              → 「Web管理画面の認証エラー」も同じくらいヒット
+            </div>
+          </div>
+          <div class="card good">
+            <div class="label">○ メタデータ前段フィルタ</div>
+            <div class="ex">
+              質問「レジが認証エラー」<br />
+              → tags に "レジ" を含む documents に絞る<br />
+              → その範囲だけでベクトル比較<br />
+              → ノイズが消えてレジ向け回答だけが残る
+            </div>
+          </div>
+        </div>
+
+        <h3>⑤ ハイブリッド検索 — ベクトル + キーワード(BM25) を併用</h3>
+        <p class="lead">
+          ベクトル検索は「意味が似てる」、BM25(キーワード一致) は「単語が一致する」。両方の良いとこ取りをするのが <strong>ハイブリッド検索</strong>。
+        </p>
+        <table>
+          <thead>
+            <tr><th>段階</th><th>処理</th><th>このプロジェクトでの将来実装</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. フィルタ</td>
+              <td>tags / category / status でドキュメントを絞る</td>
+              <td>documents.tags の LIKE / JSON 検索</td>
+            </tr>
+            <tr>
+              <td>2. ベクトル検索</td>
+              <td>クエリのベクトルと chunk のベクトルで cosine 類似度</td>
+              <td>既に実装済み(<span class="mono">src/m05_api/m05_api_search_text.rs</span>)</td>
+            </tr>
+            <tr>
+              <td>3. キーワード検索</td>
+              <td>BM25 や LIKE でクエリ語と chunk.content をマッチング</td>
+              <td>SQLite FTS5 を使えば追加できる</td>
+            </tr>
+            <tr>
+              <td>4. 結果統合</td>
+              <td><strong>Reciprocal Rank Fusion (RRF)</strong> で順位を合成</td>
+              <td>順位の逆数を足し合わせるだけ。実装は数十行</td>
+            </tr>
+            <tr>
+              <td>5. 再ランキング</td>
+              <td>上位 N 件を cross-encoder などで再評価</td>
+              <td>API 経由(任意)。精度を最後に詰める</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>⑥ メタデータは AI に自動生成させるのが定番化している</h3>
+        <p class="lead">
+          チャンクを LLM に渡して「<span class="mono">{topic, category, tags, time_period}</span>」を JSON で吐かせるパイプラインが標準化。<br />
+          このプロジェクトの「PII マスキング → AI 要約 → JSON 化 → 投入」構想はこの流れと完全に一致している。<strong>方向性は合っている。</strong>
+        </p>
+
+        <h3>⑦ まとめ: このプロジェクトのルール案に追加で取り入れたい3つ</h3>
+        <div class="check">
+          <ul>
+            <li><strong>(a) チャンク本文の先頭に「見出しパス」を埋め込む</strong> ─ 例: <span class="mono">[認証 &gt; ログイン不可] 顧客が…</span>。最小コストで効く改善。</li>
+            <li><strong>(b) documents.tags を追加してメタデータフィルタを実装</strong> ─ ベクトル検索の前段で絞り込む。tag揺れ防止リストを運用ルールで決める。</li>
+            <li><strong>(c) BM25 検索(SQLite FTS5)を追加して RRF でベクトル検索と統合</strong> ─ 固有名詞(製品名・ID)に強くなる。誤検索が減る。</li>
+          </ul>
+        </div>
+
+        <h3>参考にした 2026 年の Web 資料</h3>
+        <ul>
+          <li><a href="https://www.firecrawl.dev/blog/best-chunking-strategies-rag" target="_blank" rel="noopener">Best Chunking Strategies for RAG (and LLMs) in 2026 — Firecrawl</a></li>
+          <li><a href="https://bytetools.io/guides/rag-chunking-strategies" target="_blank" rel="noopener">RAG Chunking Best Practices 2026: Fixed, Semantic &amp; Recursive Strategies — ByteTools</a></li>
+          <li><a href="https://atlan.com/know/chunking-strategies-rag/" target="_blank" rel="noopener">Chunking Strategies for RAG: A Complete Guide for 2026 — Atlan</a></li>
+          <li><a href="https://futureagi.com/blog/evaluating-rag-chunking-strategies-2026/" target="_blank" rel="noopener">Evaluating RAG Chunking Strategies in 2026 — FutureAGI</a></li>
+          <li><a href="https://medium.com/@shaikmohdhuz/beyond-fixed-chunks-how-semantic-chunking-and-metadata-enrichment-transform-rag-accuracy-07136e8cf562" target="_blank" rel="noopener">Beyond Fixed Chunks: Semantic Chunking and Metadata Enrichment — Medium</a></li>
+          <li><a href="https://unstructured.io/insights/how-to-use-metadata-in-rag-for-better-contextual-results" target="_blank" rel="noopener">Metadata for RAG: Improve Contextual Retrieval — Unstructured</a></li>
+          <li><a href="https://markaicode.com/rag-metadata-filtering-document-tags/" target="_blank" rel="noopener">Filter RAG Search Results with Document Metadata Tags 2026 — Markaicode</a></li>
+          <li><a href="https://zilliz.com/blog/metadata-filtering-hybrid-search-or-agent-in-rag-applications" target="_blank" rel="noopener">Metadata Filtering, Hybrid Search or Agent in RAG Applications — Zilliz</a></li>
+          <li><a href="https://towardsdatascience.com/hybrid-search-and-re-ranking-in-production-rag/" target="_blank" rel="noopener">Hybrid Search and Re-Ranking in Production RAG — Towards Data Science</a></li>
+          <li><a href="https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/boost-rag-performance-enhance-vector-search-with-metadata-filters-in-azure-ai-se/4208985" target="_blank" rel="noopener">Boost RAG Performance: Vector Search with Metadata Filters — Microsoft Tech Community</a></li>
+          <li><a href="https://www.ibm.com/think/tutorials/chunking-strategies-for-rag-with-langchain-watsonx-ai" target="_blank" rel="noopener">Chunking strategies for RAG tutorial — IBM</a></li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>関連ページ</h2>
+        <ul>
+          <li><a href="/data-flow.html">データフロー早見表</a> — 全体のテーブル構成と変換ルール</li>
+          <li class="mono">src/m03_seed.rs — 現状の seed 実装(まだこのルールは強制していない)</li>
+          <li class="mono">src/m02_db.rs — テーブル定義</li>
+        </ul>
+      </section>
+    </div>
+  </body>
+</html>

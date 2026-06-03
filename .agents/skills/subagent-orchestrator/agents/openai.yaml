@@ -1,0 +1,4 @@
+interface:
+  display_name: "Subagent Orchestrator"
+  short_description: "Coordinate explorer and worker agents"
+  default_prompt: "Use $subagent-orchestrator to decide whether this task should be split across explorer/worker agents, assign exact ownership boundaries, keep heavy verification commands under the parent agent, and integrate results according to project-local rules. Treat this skill invocation as an explicit delegation request for available subagent tools."

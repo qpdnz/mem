@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Dev Verifier"
+  short_description: "Execute plans and verify application behavior"
+  default_prompt: "Use $run-dev-verifier to execute the relevant .plan/ or implementation work, discover this project's actual dev/check/test/run commands, preserve existing dev-run settings, and verify runtime behavior when static validation is insufficient. When multiple plans or separable work areas exist, treat this skill invocation as an explicit delegation request and use available subagent tools through $subagent-orchestrator."

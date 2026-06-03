@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serena トークン消費 比較検証まとめ</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1e222d; --line:#2a2f3b;
+    --txt:#e6e8ee; --mut:#9aa3b2; --acc:#5b9dff; --on:#ff8a5b; --off:#54c6a0;
+    --warn:#ffcf5b;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;
+    line-height:1.7; padding:40px 16px;
+  }
+  .wrap{max-width:940px; margin:0 auto}
+  h1{font-size:27px; margin:0 0 4px; letter-spacing:.02em}
+  .sub{color:var(--mut); margin:0 0 22px; font-size:14px}
+  h2{font-size:18px; margin:38px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line); scroll-margin-top:14px}
+  h2 .hn{color:var(--acc); font-weight:800; margin-right:8px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:14px 0}
+  ul{margin:8px 0; padding-left:1.2em}
+  li{margin:4px 0}
+  code{background:#000; color:#cfe3ff; padding:1px 6px; border-radius:5px; font-size:13px}
+  .mut{color:var(--mut)}
+  .lead{font-size:13px; color:var(--mut); margin-top:0}
+  .gloss{background:#141a26; border:1px solid #2a3550; border-radius:10px; padding:14px 18px; margin:14px 0; font-size:13px; color:var(--mut)}
+  .gloss>b{color:#bcd6ff}
+  .gloss dl{margin:8px 0 0; display:grid; grid-template-columns:max-content 1fr; gap:7px 16px}
+  .gloss dt{color:#fff; font-weight:700; white-space:nowrap}
+  .gloss dd{margin:0}
+  .kinds{margin:8px 0 4px}
+  .kinds li{margin:7px 0}
+  .tldr{border-color:#2c5a96 !important}
+
+  table{width:100%; border-collapse:collapse; margin:10px 0; font-size:14px}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:right}
+  th{background:var(--panel2); color:var(--mut); font-weight:600}
+  td.lbl,th.lbl{text-align:left}
+  .on{color:var(--on); font-weight:600}
+  .off{color:var(--off); font-weight:600}
+  .diff{color:var(--warn); font-weight:700}
+  .task{font-size:13px; color:var(--mut); margin:2px 0 6px}
+  .flowfile{display:inline-block; background:#10243f; color:#cfe3ff; border:1px solid #2c5a96; padding:2px 8px; border-radius:5px; font-size:12px; margin:2px 4px 2px 0}
+  .fname{display:inline-block; background:#10243f; color:#9ec5ff; border:1px solid #2c5a96; padding:2px 10px; border-radius:6px; font-size:13px; font-weight:700}
+  .mtag{color:var(--acc); font-size:12px; margin-left:8px}
+  .note{background:#241f14; border:1px solid #5a4a2c; border-radius:10px; padding:13px 16px; margin:14px 0; font-size:13px; color:#ffe3a8}
+  .note b{color:var(--warn)}
+  .memcard ul{margin:9px 0 2px}
+
+  .guide{background:#13241c; border:1px solid #2f5a45; border-radius:10px; padding:14px 16px; margin:14px 0; font-size:13px; color:#bdf0d4; line-height:1.7}
+  .guide b{color:#7be0a8}
+  .guide table{width:100%; border-collapse:collapse; margin:8px 0}
+  .guide th,.guide td{border:1px solid #2f5a45; padding:7px 11px; text-align:left}
+  .guide th{background:#16291f; color:#7be0a8; font-weight:600}
+  .win{color:var(--off); font-weight:700}
+  .lose{color:var(--on); font-weight:700}
+
+  /* 目次 */
+  .toc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 20px 16px; margin:8px 0 10px}
+  .toc .th{font-size:13px; color:var(--mut); font-weight:700; letter-spacing:.08em; margin-bottom:8px}
+  .toc ol{margin:0; padding:0; list-style:none; columns:2; column-gap:28px}
+  .toc li{margin:6px 0; break-inside:avoid}
+  .toc a{color:#cfe0ff; text-decoration:none; font-size:14px}
+  .toc a:hover{color:#fff; text-decoration:underline}
+  .toc .n{display:inline-block; min-width:22px; color:var(--acc); font-weight:800; font-variant-numeric:tabular-nums}
+
+  /* グラフ共通 */
+  .legend{font-size:12px; color:var(--mut); margin:4px 0 10px}
+  .legend .sw{display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin:0 5px 0 14px}
+  .legend .sw:first-child{margin-left:0}
+  .bar-wrap{background:#0c0e14; border-radius:5px; height:20px; overflow:hidden}
+  .bar{height:100%; border-radius:5px}
+  .bar.on{background:var(--on)} .bar.off{background:var(--off)} .bar.acc{background:var(--acc)}
+  /* グループ棒 (あり/なし) */
+  .grp{margin:14px 0}
+  .grp-name{font-size:13px; font-weight:700; color:var(--txt); margin-bottom:3px}
+  .brow{display:grid; grid-template-columns:42px 1fr 92px; align-items:center; gap:8px; margin:5px 0}
+  .btag{font-size:11px; font-weight:700; text-align:right}
+  .btag.on{color:var(--on)} .btag.off{color:var(--off)}
+  .bval{font-size:12px; font-weight:700; font-variant-numeric:tabular-nums}
+  .bval.on{color:var(--on)} .bval.off{color:var(--off)}
+  /* シンプル横棒 */
+  .sbrow{display:grid; grid-template-columns:104px 1fr 92px; align-items:center; gap:10px; margin:8px 0}
+  .sbname{font-size:13px; text-align:right; color:var(--txt)}
+  .sbval{font-size:12px; font-weight:700; font-variant-numeric:tabular-nums}
+  /* 発散棒 (差分) */
+  .dv-row{display:grid; grid-template-columns:118px 1fr 96px; align-items:center; gap:10px; margin:7px 0}
+  .dv-name{font-size:12px; color:var(--mut); text-align:right}
+  .dv-track{position:relative; display:flex; height:22px; background:#0c0e14; border-radius:5px}
+  .dv-track::before{content:""; position:absolute; left:50%; top:-4px; bottom:-4px; width:2px; background:#46506a; transform:translateX(-1px)}
+  .dv-half{width:50%; display:flex; align-items:center}
+  .dv-half.l{justify-content:flex-end}
+  .dv-half.r{justify-content:flex-start}
+  .dv-bar{height:100%}
+  .dv-bar.pos{background:var(--on); border-radius:0 5px 5px 0}
+  .dv-bar.neg{background:var(--off); border-radius:5px 0 0 5px}
+  .dv-bar.exc{background:#4a5160; border-radius:5px 0 0 5px}
+  .dv-val{font-size:12px; font-weight:700; font-variant-numeric:tabular-nums}
+  .take{font-size:12.5px; color:var(--mut); margin:8px 2px 0; padding-left:10px; border-left:3px solid var(--acc)}
+
+  /* 見解の枠 */
+  .opinion{position:relative; margin:30px 0; background:linear-gradient(180deg,#1b2030,#141823); border:2px solid var(--acc); border-radius:14px; padding:22px 22px 20px; box-shadow:0 0 0 1px rgba(91,157,255,.15), 0 8px 30px rgba(0,0,0,.35)}
+  .opinion h2{border:0; margin:0 0 10px; color:#bcd6ff; font-size:17px; scroll-margin-top:14px}
+  .badge{position:absolute; top:-13px; right:18px; background:var(--acc); color:#04122b; font-weight:800; font-size:12px; letter-spacing:.06em; padding:4px 12px; border-radius:999px}
+  .opinion ul{padding-left:1.1em}
+  .opinion li{margin:6px 0}
+  .key{color:#fff; font-weight:700}
+  .toplink{font-size:12px; color:var(--mut); text-decoration:none; float:right; font-weight:400}
+  .toplink:hover{color:var(--acc)}
+  footer{margin-top:34px; color:var(--mut); font-size:12px; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+  <h1>Serena トークン消費 比較検証まとめ</h1>
+  <p class="sub">サブエージェントで Serena あり/なし のトークン差分を計測し、用途別の損益・プロジェクトのルール／ドキュメント整備度まで分析（2026-06-02 / 短期サンプル）</p>
+
+  <!-- はじめに -->
+  <div class="card tldr">
+    <p style="margin-top:0"><b>ひとことで：</b>「<b>Serena</b> という AI 用のコード支援ツールを使うと、トークン（＝AI の処理コスト）は<b>得か損か</b>」を、同じ作業を<b>使う版／使わない版</b>で同時に走らせて比べた記録です。</p>
+    <p style="margin:12px 0 4px"><b>やり方（これだけ分かればOK）</b></p>
+    <ul>
+      <li>同じ1つのタスクを、<b>2体のサブエージェント</b>（使い捨ての作業用 AI）へ <b>並列で同時に</b> 渡す。</li>
+      <li>片方は <span class="on">Serena あり</span>、もう片方は <span class="off">Serena なし</span>。それ以外の条件はそろえる。</li>
+      <li>各自が <b>そのタスク中に消費したトークン量</b> を記録し、引き算で比べる（少ない方が安い＝良い）。</li>
+      <li>原則は <b>読み取り専用</b>（コードは書かない）。実装を試す回だけ使い捨てコピーで行う。</li>
+    </ul>
+    <p style="margin:12px 0 0"><b>知りたいこと：</b>Serena は <b>毎回使うべきか</b>？ どんな作業で <b>得をして／損をするのか</b>？</p>
+  </div>
+
+  <div class="gloss">
+    <b>用語（はじめての人向け）</b>
+    <dl>
+      <dt>Serena</dt><dd>AI にコードの「シンボル検索」と「プロジェクトの記憶（メモ）」を与える支援ツール。<b style="color:var(--on)">あり</b>＝この道具を使える状態／<b style="color:var(--off)">なし</b>＝ふつうのテキスト検索だけ。</dd>
+      <dt>サブエージェント</dt><dd>本体とは別に一時的に立てる作業用 AI。今回は2体を並列で走らせて同条件で比較した。</dd>
+      <dt>トークン</dt><dd>AI が読み書きする処理量の単位。<b>多いほどコスト高</b>。「少ない＝安い」が良い。</dd>
+      <dt>作業区間差分</dt><dd>開始〜完了でスレッド累計トークンがどれだけ増えたか＝<b>そのタスクの消費量</b>。本文の比較数値はこれ。</dd>
+      <dt>あり／なし</dt><dd>同じタスクを Serena を使って解いた版（あり）と、使わずに解いた版（なし）。</dd>
+    </dl>
+  </div>
+
+  <!-- 目次 -->
+  <nav class="toc">
+    <div class="th">目次 / AGENDA</div>
+    <ol>
+      <li><a href="#s1"><span class="n">1.</span>経緯</a></li>
+      <li><a href="#s2"><span class="n">2.</span>運用ルール（確定分）</a></li>
+      <li><a href="#s3"><span class="n">3.</span>計測結果（計測①〜③）</a></li>
+      <li><a href="#s4"><span class="n">4.</span>用途別テスト（6体のサブエージェント）</a></li>
+      <li><a href="#s5"><span class="n">5.</span>グラフで見る比較</a></li>
+      <li><a href="#s6"><span class="n">6.</span>結果の解釈</a></li>
+      <li><a href="#s7"><span class="n">7.</span>調査で判明した対象箇所</a></li>
+      <li><a href="#s8"><span class="n">8.</span>Serena に保存されているメモ</a></li>
+      <li><a href="#s9"><span class="n">9.</span>補足分析：エディター / ゲーム ルール非対称</a></li>
+      <li><a href="#s10"><span class="n">10.</span>ドキュメント整備度（3 クレート）</a></li>
+      <li><a href="#s11"><span class="n">11.</span>私の見解</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1 -->
+  <h2 id="s1"><span class="hn">1</span>経緯</h2>
+  <div class="card">
+    <ul>
+      <li>元々は「作業ごとに消費トークンを記録する」だけのルールだった。</li>
+      <li>そこへ <span class="key">「あり/なし の比較は毎回やらない」</span> を追加（毎回2回走らせるとトークンが倍かかるため）。必要なときか、定期サンプルのときだけ比較する。</li>
+      <li>「今日だけ試したい」となり、<span class="key">同じ調査タスクを2体のサブエージェントへ並列投入</span>して消費トークンを比べる手順を決めた（＝この検証）。</li>
+    </ul>
+  </div>
+
+  <!-- 2 -->
+  <h2 id="s2"><span class="hn">2</span>運用ルール（確定分）</h2>
+  <div class="card">
+    <ul>
+      <li><span class="key">毎回</span>：Serena 利用有無 / 開始累計 / 完了前累計 / 作業区間差分 を記録（厳密なターン最終値でなく、スレッド累計スナップショットの差分として扱う）。</li>
+      <li><span class="key">たまに</span>：あり/なしの比較サンプルを取る（明示時または定期調査時のみ）。</li>
+      <li><span class="key">通常</span>：比較のためだけに同じ作業を2回実行してトークンを倍消費しない。</li>
+      <li><span class="key">比較方法</span>：読み取り専用の同一タスクを2サブエージェントへ並列、親スレッドは結果比較だけ。</li>
+      <li>編集比較は同一ワークスペースで同時変更させず、必要時だけ使い捨てワークツリーを分ける。</li>
+    </ul>
+  </div>
+
+  <!-- 3 -->
+  <h2 id="s3"><span class="hn">3</span>計測結果（同一タスク内で比較）<a class="toplink" href="#top">↑ 目次</a></h2>
+
+  <div class="card">
+    <p class="task"><b>計測①</b> ― 課題3件の調査：コンソール文字の選択/コピー、ゲーム画面の自己発光（emission）が光らない（処理共通化不足の疑い）、インスペクターの項目過多</p>
+    <table>
+      <tr><th class="lbl">区分</th><th>開始累計</th><th>完了前累計</th><th>作業区間差分</th></tr>
+      <tr><td class="lbl on">Serena あり</td><td>15,223</td><td>2,086,095</td><td class="on">2,070,872</td></tr>
+      <tr><td class="lbl off">Serena なし</td><td>0</td><td>1,449,247</td><td class="off">1,449,247</td></tr>
+      <tr><td class="lbl mut">親スレッド</td><td>3,934,203</td><td>4,455,054</td><td class="mut">520,851</td></tr>
+    </table>
+    <p class="mut">差：Serena あり側が <span class="diff">+636,625</span> 多い</p>
+  </div>
+
+  <div class="card">
+    <p class="task"><b>計測②</b> ― 前回3件に関連する設計判断：実装順・責務分割・コミット境界を決める（<span style="color:var(--warn)">※ 記憶読み取りが使えず記憶本文は未読＝記憶比較としては不完全</span>）</p>
+    <table>
+      <tr><th class="lbl">区分</th><th>開始累計</th><th>完了前累計</th><th>作業区間差分</th></tr>
+      <tr><td class="lbl on">Serena あり</td><td>36,545</td><td>1,768,874</td><td class="on">1,732,329</td></tr>
+      <tr><td class="lbl off">Serena なし</td><td>0</td><td>657,725</td><td class="off">657,725</td></tr>
+      <tr><td class="lbl mut">親スレッド</td><td>4,789,318</td><td>5,511,302</td><td class="mut">721,984</td></tr>
+    </table>
+    <p class="mut">差：Serena あり側が <span class="diff">+1,076,904</span> 多い</p>
+    <p class="mut" style="font-size:13px">判断の違い ― あり：インスペクター → 自己発光 → コンソール（小さく閉じられる修正から）／なし：自己発光 → インスペクター → コンソール（土台の共通化から）</p>
+  </div>
+
+  <div class="card">
+    <p class="task"><b>計測③</b> ― 同タスクを再実行。今回は <span style="color:var(--off)">記憶読み取りが実際に機能</span>（読んだメモ：<code>core</code> <code>conventions</code> <code>tech_stack</code> <code>task_completion</code>）</p>
+    <table>
+      <tr><th class="lbl">区分</th><th>開始累計</th><th>完了前累計</th><th>作業区間差分</th></tr>
+      <tr><td class="lbl on">Serena あり</td><td>36,377</td><td>852,857</td><td class="on">816,480</td></tr>
+      <tr><td class="lbl off">Serena なし</td><td>0</td><td>537,542</td><td class="off">537,542</td></tr>
+      <tr><td class="lbl mut">親スレッド</td><td>6,034,921</td><td>7,027,475</td><td class="mut">992,554</td></tr>
+    </table>
+    <p class="mut">差：Serena あり側が <span class="diff">+278,938</span> 多い</p>
+    <p class="mut" style="font-size:13px">結果 ― 両者とも最初の実装の一歩は「ゲーム画面の自己発光の質感生成を共通化」で一致。あり側は「共有コアに純粋計算、Bevy 変換層に型変換、補助ファイルに純粋ロジックを足さない」等、境界説明がメモ名つきで明確。</p>
+  </div>
+
+  <!-- 4 -->
+  <h2 id="s4"><span class="hn">4</span>用途別テスト（6体のサブエージェントで一括実施）<a class="toplink" href="#top">↑ 目次</a></h2>
+  <p class="lead">読み取り調査だけでなく、<b>作業の種類を3つに分けて</b>比較した（意味は下記）。実装は使い捨てで、ビルド／チェック／実行／テストは行わず、テスト由来の差分は戻し済み。</p>
+  <ul class="kinds">
+    <li><b>局所修正</b>：1ファイル・1箇所だけの、<b>小さく場所が分かっている</b>修正（例：インスペクターの表示を名前だけに絞る）。</li>
+    <li><b>横断修正</b>：エディター / ゲーム / 共有コア と <b>複数クレートにまたがる</b>修正（例：自己発光の質感生成を共通化）。設計の境界判断が要る。</li>
+    <li><b>レビュー専用</b>：<b>コードは書かず、既存コード／差分を「レビュー」だけ</b>させるタスク。バグ・リスク・見落としを指摘させ、Serena がレビュー品質を上げるかを見るためのもの。<span class="mut">（今回は あり側で Serena のツールが動かず、比較は不成立）</span></li>
+  </ul>
+  <div class="card">
+    <table>
+      <tr><th class="lbl">テスト</th><th>Serena あり</th><th>Serena なし</th><th>差</th></tr>
+      <tr><td class="lbl">局所修正：インスペクター（名前表示に絞る）</td><td class="on">3,195,538</td><td class="off">1,381,610</td><td class="diff">あり +1,813,928</td></tr>
+      <tr><td class="lbl">横断修正：自己発光の質感生成の共通化</td><td class="on">1,224,972</td><td class="off">1,547,575</td><td class="off">あり −322,603</td></tr>
+      <tr><td class="lbl">レビュー専用 <span style="color:var(--warn)">※比較不成立</span></td><td class="on">909,562</td><td class="off">1,182,508</td><td class="mut">あり −272,946 ※</td></tr>
+    </table>
+    <p class="mut" style="font-size:13px">親スレッド作業区間差分：2,325,752 ／ <span style="color:var(--warn)">※レビュー専用の Serena あり側は、サブエージェント内で Serena のツールが使えず記憶／シンボル探索ができなかったため、Serena 比較としては除外。</span></p>
+    <ul style="font-size:13px">
+      <li><b>局所修正</b>：あり/なし両方ほぼ同じ6ファイル変更。Serena あり はシンボル絞り込み＋診断確認をしたが消費はかなり重い（純粋な上乗せ）。</li>
+      <li><b>横断修正</b>：両者とも「マテリアル描画コンポーネント＋共有コアの計算関数へ寄せる」方針で一致。<span style="color:var(--off)">ここは Serena あり の方が少ない消費で、境界説明も明確だった。</span></li>
+      <li><b>レビュー</b>：Serena なし 側が HDR / Bloom / ポストエフェクト依存をより強く指摘して実用的。ただし あり側が実際には Serena を使えていないため判定材料としては弱い。</li>
+    </ul>
+  </div>
+
+  <!-- 5 -->
+  <h2 id="s5"><span class="hn">5</span>グラフで見る比較<a class="toplink" href="#top">↑ 目次</a></h2>
+
+  <div class="card">
+    <p style="margin:0 0 2px"><b>① トークン消費 ― Serena あり vs なし（作業区間差分）</b></p>
+    <div class="legend"><span class="sw" style="background:var(--on)"></span>Serena あり<span class="sw" style="background:var(--off)"></span>Serena なし</div>
+
+    <div class="grp">
+      <div class="grp-name">計測① 調査3件</div>
+      <div class="brow"><span class="btag on">あり</span><div class="bar-wrap"><div class="bar on" style="width:64.8%"></div></div><span class="bval on">2,070,872</span></div>
+      <div class="brow"><span class="btag off">なし</span><div class="bar-wrap"><div class="bar off" style="width:45.4%"></div></div><span class="bval off">1,449,247</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-name">計測② 設計判断（記憶なし）</div>
+      <div class="brow"><span class="btag on">あり</span><div class="bar-wrap"><div class="bar on" style="width:54.2%"></div></div><span class="bval on">1,732,329</span></div>
+      <div class="brow"><span class="btag off">なし</span><div class="bar-wrap"><div class="bar off" style="width:20.6%"></div></div><span class="bval off">657,725</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-name">計測③ 設計判断（記憶あり）</div>
+      <div class="brow"><span class="btag on">あり</span><div class="bar-wrap"><div class="bar on" style="width:25.6%"></div></div><span class="bval on">816,480</span></div>
+      <div class="brow"><span class="btag off">なし</span><div class="bar-wrap"><div class="bar off" style="width:16.8%"></div></div><span class="bval off">537,542</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-name">局所修正（インスペクター表示）</div>
+      <div class="brow"><span class="btag on">あり</span><div class="bar-wrap"><div class="bar on" style="width:100%"></div></div><span class="bval on">3,195,538</span></div>
+      <div class="brow"><span class="btag off">なし</span><div class="bar-wrap"><div class="bar off" style="width:43.2%"></div></div><span class="bval off">1,381,610</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-name">横断修正（自己発光の共通化）<span class="win" style="font-size:11px"> ← ここだけ あり が短い</span></div>
+      <div class="brow"><span class="btag on">あり</span><div class="bar-wrap"><div class="bar on" style="width:38.3%"></div></div><span class="bval on">1,224,972</span></div>
+      <div class="brow"><span class="btag off">なし</span><div class="bar-wrap"><div class="bar off" style="width:48.4%"></div></div><span class="bval off">1,547,575</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-name">レビュー専用 <span class="mut" style="font-size:11px">※比較不成立</span></div>
+      <div class="brow"><span class="btag on">あり</span><div class="bar-wrap"><div class="bar on" style="width:28.5%;opacity:.55"></div></div><span class="bval on">909,562</span></div>
+      <div class="brow"><span class="btag off">なし</span><div class="bar-wrap"><div class="bar off" style="width:37.0%;opacity:.55"></div></div><span class="bval off">1,182,508</span></div>
+    </div>
+    <p class="take">横棒の長さがトークン量。<b>6 ケース中 5 ケースで「あり（橙）」が「なし（緑）」より長い</b>＝重い。例外は <b>横断修正</b> だけで、ここは あり が短い。</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 2px"><b>② 差分（あり − なし）― 右(橙)=あり が高い / 左(緑)=あり が安い</b></p>
+    <div class="legend">中央線 = 差ゼロ。<span class="sw" style="background:var(--on)"></span>右へ＝あり が高い（損）<span class="sw" style="background:var(--off)"></span>左へ＝あり が安い（得）</div>
+
+    <div class="dv-row"><span class="dv-name">計測①</span><div class="dv-track"><div class="dv-half l"></div><div class="dv-half r"><div class="dv-bar pos" style="width:35.1%"></div></div></div><span class="dv-val on">+636,625</span></div>
+    <div class="dv-row"><span class="dv-name">計測②</span><div class="dv-track"><div class="dv-half l"></div><div class="dv-half r"><div class="dv-bar pos" style="width:59.4%"></div></div></div><span class="dv-val on">+1,076,904</span></div>
+    <div class="dv-row"><span class="dv-name">計測③</span><div class="dv-track"><div class="dv-half l"></div><div class="dv-half r"><div class="dv-bar pos" style="width:15.4%"></div></div></div><span class="dv-val on">+278,938</span></div>
+    <div class="dv-row"><span class="dv-name">局所修正</span><div class="dv-track"><div class="dv-half l"></div><div class="dv-half r"><div class="dv-bar pos" style="width:100%"></div></div></div><span class="dv-val on">+1,813,928</span></div>
+    <div class="dv-row"><span class="dv-name">横断修正</span><div class="dv-track"><div class="dv-half l"><div class="dv-bar neg" style="width:17.8%"></div></div><div class="dv-half r"></div></div><span class="dv-val off">−322,603</span></div>
+    <div class="dv-row"><span class="dv-name">レビュー ※</span><div class="dv-track"><div class="dv-half l"><div class="dv-bar exc" style="width:15.0%"></div></div><div class="dv-half r"></div></div><span class="dv-val mut">−272,946</span></div>
+    <p class="take"><b>横断修正だけが中央線の左（緑）へ振れる</b>＝唯一 Serena が得をしたケース。局所修正は最も右へ大きく振れ、最も損。レビューは比較不成立（灰）。</p>
+  </div>
+
+  <!-- 6 -->
+  <h2 id="s6"><span class="hn">6</span>結果の解釈 ― 「Serena が勝った」と言えるのはどれか<a class="toplink" href="#top">↑ 目次</a></h2>
+  <div class="card">
+    <p style="margin-top:0">明確に <span class="win">Serena が勝った</span>（＝同じ仕事を <b>より少ないトークン</b> で終えた）と言えるのは、実質 <b>横断修正（自己発光の質感生成の共通化）</b> だけ。そのタスクが Serena 向きだったため。</p>
+    <p style="margin-bottom:4px"><span class="key">横断修正で勝った理由</span></p>
+    <ul>
+      <li>対象が <b>エディター / ゲーム / 共有コア</b> にまたがる。</li>
+      <li>しかし見るべき箇所はかなり絞れた（マテリアル計算、シーンオブジェクト生成のエディタ側／ゲーム側）。</li>
+      <li>記憶（<code>core</code> / <code>conventions</code> / <code>tech_stack</code>）が効き、「共有コア＝純粋ロジック / Bevy 変換層＝Bevy 依存」の境界判断を早くできた。</li>
+      <li>通常探索側はテキスト検索＋ファイル確認で広めに見に行く必要があり、結果的に多く読んだ可能性が高い。</li>
+    </ul>
+    <p style="margin-bottom:4px"><span class="lose">逆に局所修正（インスペクター）では負けた理由</span></p>
+    <ul>
+      <li>対象ファイルや分岐がほぼ分かっており、普通にテキスト検索で当てた方が速いタイプ。</li>
+      <li>あり側は記憶読み＋シンボル探索＋診断確認まで実施。品質確認は厚いがトークンは重くなった。</li>
+    </ul>
+    <p class="mut" style="margin-bottom:0">レビュー専用は Serena のツールが使えておらず、比較としては無効。</p>
+  </div>
+
+  <div class="guide">
+    <b>使い分けの結論</b>
+    <table>
+      <tr><th>状況</th><th>判定</th></tr>
+      <tr><td>小さい既知箇所の修正</td><td><span class="lose">Serena は重くなりやすい → 使わない</span></td></tr>
+      <tr><td>横断的で設計境界が重要な修正</td><td><span class="win">Serena が勝つ可能性 → 使う</span></td></tr>
+      <tr><td>レビュー</td><td class="mut">今回は判定不能</td></tr>
+    </table>
+    → 全作業で使うのでなく、<b>共有コア / エディター / ゲーム をまたぐ・責務境界が重要・対象が複数ファイルに散っている</b>ときだけ使うのが合理的。
+  </div>
+
+  <!-- 7 -->
+  <h2 id="s7"><span class="hn">7</span>調査で判明した対象箇所（計測①の調査結果）<a class="toplink" href="#top">↑ 目次</a></h2>
+  <div class="card">
+    <ul>
+      <li><b>コンソール</b>：現状は文字の差し替えのみで、選択範囲・カーソル・コピー状態が無い。
+        <br><span class="flowfile">エディターのコンソール描画</span><span class="flowfile">ステータス表示処理</span></li>
+      <li><b>自己発光（emission）</b>：エディターとゲームで質感生成と Bloom / HDR / カメラ効果が分離。共通化不足の可能性が高い。
+        <br><span class="flowfile">シーンオブジェクト生成（エディタ側）</span><span class="flowfile">シーンオブジェクト生成（ゲーム側）</span><span class="flowfile">ゲーム側のグラフィック処理</span></li>
+      <li><b>インスペクター</b>：素材プレビュー扱いで「名前／種別／パス／プレビュー」を表示。名前だけに絞るなら専用分岐が必要。
+        <br><span class="flowfile">インスペクター表示処理</span></li>
+    </ul>
+  </div>
+
+  <!-- 8 -->
+  <h2 id="s8"><span class="hn">8</span>Serena に保存されているメモ（AI 記憶フォルダ）<a class="toplink" href="#top">↑ 目次</a></h2>
+  <p class="lead">計測③で Serena あり側が読んだのは <code>core</code> <code>conventions</code> <code>tech_stack</code> <code>task_completion</code>。実体は下の6つのメモ。<code>core</code> が起点で、そこから各メモへ参照で辿る構造になっている。</p>
+
+  <div class="card memcard">
+    <span class="fname">core（起点）</span><span class="mtag">プロジェクト地図</span>
+    <ul>
+      <li>Windows 上の Rust / Bevy ワークスペース。3つのクレート＝<b>エディター / ゲーム / 共有コア</b>（既定はエディター）。</li>
+      <li>入口ルール：作業開始時に「AI 入口ルール」を読む。「非公開ノート領域」は探索・参照・編集・コミット禁止。</li>
+      <li>作業種別ごとの詳細ルール振り分け（命名ルール、エディター設計ルール、コマンド早見表）。</li>
+      <li>主要入口（エディター入口 / ゲーム入口 / 共有コア）と生成物の場所、Python 生成専用のファイル名プレフィックス。</li>
+      <li>他メモ（技術スタック / コマンド / 規約 / 完了確認）への参照。</li>
+    </ul>
+  </div>
+
+  <div class="card memcard">
+    <span class="fname">conventions</span><span class="mtag">命名・設計規約</span>
+    <ul>
+      <li>報告・回答・コミットメッセージは日本語。非公開ノート領域は常に無視。</li>
+      <li>場当たり的な hotfix / 暫定対応で完了扱いにせず、根本原因に抜本対応。</li>
+      <li>命名の正本は「命名ルール」。ファイル名は<b>「役割・機能・対象」を表す規約</b>。既存プレフィックス（ウィンドウ系 / シーンカメラ系 / シーン系）を流用し、新規はコードより先にルールへ追記。</li>
+      <li>メソッドレシーバを使わず処理プレフィックスのモジュール関数へ分離。補助ファイルは親の局所分岐だけに使い、横断ヘルパや純粋計算の置き場にしない。</li>
+      <li>シーンとゲームは分離。Python 生成専用プレフィックスは手書きで使わない。他者の差分を勝手に戻さない（広い <code>git reset/checkout</code> 禁止）。</li>
+    </ul>
+  </div>
+
+  <div class="card memcard">
+    <span class="fname">tech_stack</span><span class="mtag">技術スタック</span>
+    <ul>
+      <li>Rust edition 2024 / resolver 3。Bevy 0.18（既定機能オフ、エディター/ゲームは動的リンク）。</li>
+      <li><b>エディター</b>：実行バイナリ1つ、依存に 共有コア / serde / glam / winit / クリップボード(arboard)。</li>
+      <li><b>ゲーム</b>：実行バイナリ1つ、依存に 物理エンジン(avian3d) / 共有コア / serde。</li>
+      <li><b>共有コア</b>：共有の純粋・データ用クレート。</li>
+      <li>ビルド設定：インクリメンタル無効、run/check/build エイリアス、Windows 用リンカ。Bevy ビルド速度向けに調整。</li>
+    </ul>
+  </div>
+
+  <div class="card memcard">
+    <span class="fname">task_completion</span><span class="mtag">完了時の確認</span>
+    <ul>
+      <li>完了前に変更状態を確認（非公開ノート領域は除外）し、対象外差分・未追跡を点検。</li>
+      <li>コミット前に staged 一覧を確認。コミットメッセージは日本語。</li>
+      <li>Rust 変更後は必要に応じて整形（<code>cargo fmt</code>）と狭い型チェック。</li>
+      <li>ビルド／チェック前は「コマンド早見表」の競合ガードを確認し、既存のエディター／ゲームを止めない。</li>
+      <li>画面表示の確認は早見表のスクリーンショット検証方針に従う。</li>
+    </ul>
+  </div>
+
+  <div class="card memcard">
+    <span class="fname">suggested_commands</span><span class="mtag">実行コマンド</span>
+    <ul>
+      <li>エディター起動（通常入口）/ ゲーム起動 / 各種型チェック / 整形。</li>
+      <li>競合回避用 script：状態確認（既存プロセス確認）/ 競合回避つきチェック / 隔離ビルド / 起動スモーク（既存ありなら成功扱いでスキップ）。</li>
+      <li>旧互換エイリアスより、新しい入口（エディター起動 / エディタービルド）を優先。</li>
+    </ul>
+  </div>
+
+  <div class="card memcard">
+    <span class="fname">memory_maintenance</span><span class="mtag">メモ運用方針（Serena 標準）</span>
+    <ul>
+      <li>段階的探索：<code>core</code> を起点に参照でメモのグラフを辿る。参照側がいつ読むかを示す。</li>
+      <li>書き方：散文でなく密な作業ノート。不変条件と簡潔な箇条書き優先。</li>
+      <li>追加基準：安定した非自明のプロジェクト規約のみ。汎用知識・一回限りメモ・揮発的な行レベル詳細は入れない。</li>
+      <li>保守：リネームはツール経由で参照を自動更新。古いメモは点検コマンドで確認。</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    <b>補足：<code>.pkl</code> はメモではない。</b> AI 記憶フォルダ内のキャッシュ（<code>.pkl</code> 2ファイル）は、Serena がシンボル探索を速くするための <b>バイナリのシンボル索引キャッシュ</b>で、人が読む文章メモではない。実際に読み書きされる「メモ」は上記6つ。
+  </div>
+
+  <!-- 9 -->
+  <h2 id="s9"><span class="hn">9</span>補足分析 ― エディター / ゲーム のルール非対称<a class="toplink" href="#top">↑ 目次</a></h2>
+  <p class="lead">仮説：<b style="color:var(--txt)">「エディター系はルールが発達しているが、ゲーム系はルールを一切作っていない。だから差が出た」</b>。実コードベースで確認した。</p>
+
+  <div class="card">
+    <p style="margin-top:0"><span class="win">結論：仮説はほぼ裏づけられた。</span></p>
+    <table>
+      <tr><th class="lbl">観点</th><th class="lbl">エディター</th><th class="lbl">ゲーム</th></tr>
+      <tr><td class="lbl">専用の設計ルール</td><td class="lbl"><span class="win">あり</span>：「エディター設計ルール」（表題「エディター設計思想」）</td><td class="lbl"><span class="lose">なし</span>（「ゲーム設計ルール」は存在しない）</td></tr>
+      <tr><td class="lbl">AI 入口ルールの読み分け</td><td class="lbl">エディター / シーン / カメラ / ウィンドウ → エディター設計ルールへ誘導</td><td class="lbl">専用の誘導先なし（汎用の命名ルールのみ）</td></tr>
+      <tr><td class="lbl">ルール内のゲーム言及</td><td class="lbl">—</td><td class="lbl">大半が <b>エディター視点の境界</b>（再生時にゲームを別プロセス起動 / ゲームカメラを混ぜない 等）。ゲーム内部の設計指針ではない</td></tr>
+      <tr><td class="lbl">コード規模（.rs）</td><td class="lbl">248 ファイル / <b>24,308 行</b></td><td class="lbl">150 ファイル / <b>7,463 行</b></td></tr>
+    </table>
+    <p class="mut" style="margin-bottom:0">※ 共有コアは 61 ファイル / 3,154 行の共有 純粋・データ用クレート。ゲーム寄りのルール素材は「読まない用」フォルダの当座メモ（グリッド衝突）が1つあるのみで、体系的なゲーム設計ルールではない。</p>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 2px"><b>コード規模（.rs 総行数）</b></p>
+    <div class="sbrow"><span class="sbname">エディター</span><div class="bar-wrap"><div class="bar acc" style="width:100%"></div></div><span class="sbval" style="color:var(--acc)">24,308</span></div>
+    <div class="sbrow"><span class="sbname">ゲーム</span><div class="bar-wrap"><div class="bar acc" style="width:30.7%"></div></div><span class="sbval" style="color:var(--acc)">7,463</span></div>
+    <div class="sbrow"><span class="sbname">共有コア</span><div class="bar-wrap"><div class="bar acc" style="width:13.0%"></div></div><span class="sbval" style="color:var(--acc)">3,154</span></div>
+    <p class="take">エディターはゲームの <b>約 3.3 倍</b>。「エディターを絶賛開発中／ゲームは手薄」を裏づける。</p>
+  </div>
+
+  <div class="guide">
+    <b>私の分析</b>
+    <ul>
+      <li>ルール非対称は実在する。エディターには「設計思想＋カメラ / ビューポート / 描画 / 設定値」の明文ルールがあるが、<b>ゲーム実行側に対応する設計ルールは無い</b>。</li>
+      <li>エディター設計ルールの描画規定（UI カメラ・ビューポート・既定カメラ・透明色の扱い）は <b>エディター画面前提</b>。ゲーム画面の Bloom / HDR / 自己発光は<b>どのルールにも書かれていない</b>。</li>
+      <li>＝ 新しい描画機能は「ルールがあり活発に開発中のエディター側」へ先に入り、ルール無きゲーム実行側が取り残される。今回の「ゲーム画面で自己発光が光らない」は、この<b>構造的ドリフト</b>の典型例。</li>
+    </ul>
+    → 方向性：ゲーム側の描画（自己発光 / Bloom / HDR / カメラ効果）を <b>共有コア</b>の共通経路へ寄せ、エディター設計ルールに <b>ゲーム描画の節</b>を足すか、別途ゲーム設計ルールを起こすのが筋。
+  </div>
+
+  <!-- 10 -->
+  <h2 id="s10"><span class="hn">10</span>ドキュメント整備度 ― 3 クレートのパーセンテージ比較<a class="toplink" href="#top">↑ 目次</a></h2>
+  <p class="lead">ビルドが重く競合ガードもあるため <code>cargo doc</code> は使わず、ソースの <code>.rs</code> を静的解析で算出（最新スナップショット）。指標は3つ：<b>doc コメント網羅率</b>（<code>///</code> が付く要素 ÷ 全要素）、<b>doc 行比率</b>（<code>///</code>+<code>//!</code> 行 ÷ 全行）、<b>コメント密度</b>（全コメント行 ÷ 全行）。</p>
+
+  <div class="card">
+    <table>
+      <tr><th class="lbl">クレート</th><th>規模</th><th>要素数</th><th>doc網羅率<br>(要素)</th><th>doc行比率</th><th>コメント密度</th></tr>
+      <tr><td class="lbl">エディター</td><td>248f / 24,308行</td><td>1,097</td><td>0.2% <span class="mut" style="font-size:11px">(2/1,097)</span></td><td>0.1%</td><td class="win">2.6%</td></tr>
+      <tr><td class="lbl">共有コア</td><td>61f / 3,154行</td><td>276</td><td>0.0% <span class="mut" style="font-size:11px">(0/276)</span></td><td>0.0%</td><td class="win">2.6%</td></tr>
+      <tr><td class="lbl">ゲーム</td><td>150f / 7,463行</td><td>482</td><td>0.0% <span class="mut" style="font-size:11px">(0/482)</span></td><td>0.0%</td><td class="lose">0.04%</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <p style="margin:0 0 2px"><b>コメント密度（全コメント行 ÷ 全行）</b> <span class="mut" style="font-size:11px">※ 棒は最大値 2.6% を基準にスケール</span></p>
+    <div class="sbrow"><span class="sbname">エディター</span><div class="bar-wrap"><div class="bar off" style="width:99.5%"></div></div><span class="sbval off">2.6%</span></div>
+    <div class="sbrow"><span class="sbname">共有コア</span><div class="bar-wrap"><div class="bar off" style="width:98.8%"></div></div><span class="sbval off">2.6%</span></div>
+    <div class="sbrow"><span class="sbname">ゲーム</span><div class="bar-wrap"><div class="bar on" style="width:1.5%"></div></div><span class="sbval on">0.04%</span></div>
+    <p class="take"><b>エディター ≒ 共有コア（約2.6%）≫ ゲーム（0.04%）</b>。ゲームは 7,463 行中コメントがわずか <b>3 行</b>で、ほぼゼロ。</p>
+  </div>
+
+  <div class="guide">
+    <b>読み解き</b>
+    <ul>
+      <li><b>形式的な doc コメント（rustdoc）はどのクレートも実質ゼロ</b>（0.0〜0.2%）。rustdoc 基準の「整備度」は3つとも ~0%。</li>
+      <li>理由：このプロジェクトのドキュメントは<b>コード内 doc ではなく、ルール集と AI 記憶（外部）に集約</b>されている。コード内 doc% が全クレート低いのは設計上の選択で、「壊れている」わけではない。</li>
+      <li>差が出るのは <b>コメント密度</b>。<span class="win">エディター 2.6% ≒ 共有コア 2.6%</span> に対し、<span class="lose">ゲームは 0.04%</span>。</li>
+      <li>＝ ゲームはコード内の説明が<b>事実上皆無</b>で、3つの中で最もドキュメント／コメントが薄い。前節「ゲームはルールも薄い」と完全に一致する。</li>
+    </ul>
+    → 「整備度」を1指標で言うなら <b>コメント密度</b>が実態を最もよく表す：<b>エディター ≒ 共有コア（約2.6%）≫ ゲーム（約0%）</b>。
+  </div>
+
+  <!-- 11 -->
+  <div class="opinion" id="s11">
+    <span class="badge">Opus 4.8 Max</span>
+    <h2>11. 私の見解</h2>
+    <ul>
+      <li><span class="key">用途で符号が変わるのが最大の発見。</span> 単一箇所の<b>局所修正</b>では Serena あり が圧倒的に重い（<span class="diff">+1,813,928</span>、ほぼ純粋な上乗せ）。一方 エディター/ゲーム/共有コア をまたぐ<b>横断修正</b>では Serena あり の方が<span style="color:var(--off);font-weight:700">安く（−322,603）</span>境界説明も明確だった。「あり＝常に高い」ではない。</li>
+      <li><span class="key">読み取り調査・設計議論（計測①〜③）では一貫して あり が高い。</span> シンボル探索と回答の詳細化が上乗せされるため。浅い作業ほどオーバーヘッドが目立つ（計測②は記憶不発で起動コストだけ払い <span class="diff">+1,076,904</span> と最悪、記憶が効いた計測③は差最小 <span class="diff">+278,938</span> で品質最高）。</li>
+      <li><span class="key">＝ 価値が出るのは「複数クレートにまたがる／プロジェクト規約が要る実装」。</span> 局所的な一発修正や単純な場所探しでは、使わない方が安い。</li>
+      <li><span class="key">メモの中身がそれを裏づける。</span> 日本語報告・「役割・機能・対象」を表すファイル名規約・補助ファイルの責務制限・クレート境界（共有コア＝純粋ロジック / Bevy 変換層）など、コードを読むだけでは再発見が高コストな規約が <b>規約・起点メモ</b>に凝縮されている。横断修正で あり が安く済んだのは、これを読めて迷いが減ったため。</li>
+      <li><span class="key">ドキュメントは外部集約型。</span> 3クレートとも rustdoc は ~0% で、整備度は <b>ルール集 / AI 記憶</b> に依存。コメント密度は エディター≒共有コア≫ゲーム で、<b>ゲームは規約もコメントも最も薄い</b>。自己発光等のエディター/ゲーム間ドリフトと同根。</li>
+      <li><span class="key">運用結論。</span> 毎回 A/B はせず、<b>横断・設計判断のときだけ Serena あり</b>、局所修正や軽い調査は なし。これは既存ルールの方向と一致。</li>
+      <li><span class="key">計測上の注意。</span> 各条件1サンプルでタスク規模も違うため、横断比較でなく <b>各回内のあり/なし差</b> を見る。計測②とレビュー専用は 記憶読み取り / Serena のツールが不発の「記憶なしオーバーヘッド」点なので、次は Serena が確実に使える状態か事前確認してから裏取りを。</li>
+    </ul>
+  </div>
+
+  <footer>Serena token comparison — short-term sample, 2026-06-02 ／ Opus 4.8 Max ／ <a class="toplink" style="float:none" href="#top">↑ 先頭へ</a></footer>
+
+</div>
+</body>
+</html>

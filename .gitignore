@@ -1,0 +1,34 @@
+node_modules
+.log
+devserver.out.log
+devserver.err.log
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# 業務データの誤コミット防止（原価・経費は localStorage。エクスポートを置かない）
+*.local.json
+*.export.json
+**/user-data/
+**/exports/
+storage-state.json
+playwright/.auth/

@@ -1,0 +1,563 @@
+{
+	"editor.codeLensFontSize": 10,
+	"workbench.editor.tabSizing": "fit",
+	"search.exclude": {
+		"**/*.csproj": true,
+		"**/*.lscache": true,
+		"*/CLAUDE.md": true,
+		"*/**/CLAUDE.md": true,
+		"*/CLAUDE.md.meta": true,
+		"*/**/CLAUDE.md.meta": true
+	},
+	"files.exclude": {
+		"*/CLAUDE.md": true,
+		"*/**/CLAUDE.md": true,
+		"*/CLAUDE.md.meta": true,
+		"*/**/CLAUDE.md.meta": true,
+		"**/.DS_Store": true,
+		"**/.git": true,
+		"**/.lscache": true,
+		"**/.confige": true,
+		"**/.config": true,
+		"**/*.slnx": true,
+		"**/*.lscache": true,
+		"**/.vs": true,
+		"**/.gitmodules": true,
+		"**/.vsconfig": true,
+		"**/*.booproj": true,
+		"**/*.pidb": true,
+		"**/*.suo": true,
+		"**/*.user": true,
+		"**/*.userprefs": true,
+		"**/*.unityproj": true,
+		"**/*.dll": true,
+		"**/*.exe": true,
+		"**/*.pdf": true,
+		"**/*.mid": true,
+		"**/*.midi": true,
+		"**/*.wav": true,
+		"**/*.gif": true,
+		"**/*.ico": true,
+		"**/*.jpg": true,
+		"**/*.jpeg": true,
+		"**/*.png": true,
+		"**/*.psd": true,
+		"**/*.tga": true,
+		"**/*.tif": true,
+		"**/*.tiff": true,
+		"**/*.3ds": true,
+		"**/*.3DS": true,
+		"**/*.fbx": true,
+		"**/*.FBX": true,
+		"**/*.lxo": true,
+		"**/*.LXO": true,
+		"**/*.ma": true,
+		"**/*.MA": true,
+		"**/*.obj": true,
+		"**/IsExternalInit.cs": true,
+		"**/*.OBJ": true,
+		"**/*.asset": true,
+		"**/*.cubemap": true,
+		"**/*.flare": true,
+		"**/*.mat": true,
+		"**/*.meta": true,
+		"**/*.prefab": true,
+		"**/*.unity": true,
+		"**/_Recovery": true,
+		"**/image": true,
+		"**/model": true,
+		"**/animator": true,
+		"**/IsExternalInit": true,
+		"**/map": true,
+		"**/other/graphic": true,
+		"**/Packages": true,
+		"**/UIElementsSchema": true,
+		"**/other/material": true,
+		"**/other/Monster": true,
+		"**/other/prefab": true,
+		"**/other/scritableObject": true,
+		"**/TextMesh Pro": true,
+		"**/Resources": true,
+		"build/": true,
+		"Build/": true,
+		"Library/": true,
+		"obj/": true,
+		"Obj/": true,
+		"Logs/": true,
+		"logs/": true,
+		"ProjectSettings/": true,
+		"UserSettings/": true,
+		"temp/": true,
+		"Temp/": true,
+		"Packages": true
+	},
+	"chat.extensionUnification.enabled": false,
+	"editor.formatOnSave": true,
+	"formatFiles.extensionsToInclude": "cs,meta,csv",
+	"formatFiles.excludedFolders": [
+		"node_modules",
+		".vscode",
+		".git",
+		"dist",
+		".chrome",
+		"Library",
+		"Logs",
+		"Obj",
+		"Packages",
+		"ProjectSettings",
+		"Temp",
+		"UserSettings"
+	],
+	"betterAlign.skipOverIndentationPadding": true,
+	"betterAlign.alignBy": [
+		"=>",
+		","
+	],
+	"todo-tree.general.tags": [
+		"TODO",
+		"FIXME",
+		"HACK",
+		"BUG",
+		"FORGET",
+		"DEV",
+		"REVIEW"
+	],
+	"betterAlign.addSpace": true,
+	"betterAlign.removeFirst": true,
+	"formatFiles.folderToFormat": "${workspaceFolder}/Assets",
+	"formatFiles.inheritWorkspaceExcludedFiles": true,
+	"formatFiles.runOrganizeImports": true,
+	"formatFiles.useGitIgnore": true,
+	"editor.defaultFormatter": "ms-dotnettools.csdevkit",
+	"dotnet.server.useOmnisharp": true,
+	"dotnet.defaultSolution": "fps4.slnx",
+	"better-comments.tags": [
+		{
+			"tag": "!",
+			"color": "#FF2D00",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "?",
+			"color": "#3498DB",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "//",
+			"color": "#474747",
+			"strikethrough": true,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "todo",
+			"color": "#FF8C00",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		}
+	],
+	"regionHighlighter.defaultTheme": "Morandi",
+	"regionHighlighter.decorationStyle": "background",
+	"regionHighlighter.customColor": [
+		"#FF6B6B00",
+		"#F7B26702",
+		"#FFD1660f",
+		"#9BE79B14",
+		"#7FDBFF14",
+		"#A78BFA14",
+		"#FF9AD514",
+		"#C3E6CB14"
+	],
+	"editor.letterSpacing": -0.5,
+	"editor.lineHeight": 0.8,
+	"editor.suggestFontSize": 15,
+	"files.eol": "\n",
+	"files.encoding": "utf8",
+	"workbench.sideBar.location": "left",
+	"workbench.tree.indent": 8,
+	"editor.fontFamily": "Cascadia Code, Segoe UI Emoji, monospace",
+	"editor.experimental.stickyScroll": false,
+	"editor.unicodeHighlight.allowedCharacters": {},
+	"workbench.colorCustomizations": {
+		"editor.background": "#0e0e0e",
+		"sideBar.background": "#161821",
+		"sideBar.border": "#252b3b",
+		"panel.background": "#161821",
+		"panel.border": "#252b3b",
+		"sideBarSectionHeader.background": "#202330",
+		"titleBar.inactiveBackground": "#ec7490",
+		"titleBar.inactiveForeground": "#ff0000",
+		"titleBar.activeBackground": "#ec7490",
+		"titleBar.activeForeground": "#ffffff",
+		"editorUnicodeHighlight.border": "#ff8800",
+		"editor.selectionHighlightBackground": "#00ffff33",
+		"editor.findMatchHighlightBackground": "#ffff0033",
+		"editor.findMatchBackground": "#ffff0066",
+		"editorGroupHeader.tabsBackground": "#0f111a",
+		"tab.activeBackground": "#318351",
+		"tab.activeForeground": "#ffffff",
+		"tab.inactiveBackground": "#262729",
+		"tab.inactiveForeground": "#ec7490",
+		"tab.activeBorderTop": "#161717",
+		"tab.border": "#02ff5f",
+		"editorOverviewRuler.findMatchForeground": "#00000000",
+		"editorOverviewRuler.rangeHighlightForeground": "#00000000",
+		"editorOverviewRuler.selectionHighlightForeground": "#00000000",
+		"editorOverviewRuler.wordHighlightForeground": "#00000000",
+		"editorOverviewRuler.bracketMatchForeground": "#00000000",
+		"editorOverviewRuler.errorForeground": "#00000000",
+		"editorOverviewRuler.warningForeground": "#00000000",
+		"editorOverviewRuler.infoForeground": "#00000000"
+	},
+	"editor.unicodeHighlight.ambiguousCharacters": true,
+	"todohighlight.isEnable": true,
+	"todohighlight.isCaseSensitive": true,
+	"todohighlight.include": [
+		"**/*"
+	],
+	"todohighlight.exclude": [
+		"**/node_modules/**",
+		"**/.git/**"
+	],
+	"todohighlight.keywords": [
+		{
+			"text": "return",
+			"regex": {
+				"pattern": "\\breturn\\b"
+			},
+			"backgroundColor": "#ffffff",
+			"color": "#000000",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "アクセス修飾子",
+			"regex": {
+				"pattern": "\\b(?:public|protected|internal)\\b"
+			},
+			"backgroundColor": "#ddff00",
+			"color": "#000000",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "アクセス修飾子(private)",
+			"regex": {
+				"pattern": "\\b(?:private)\\b"
+			},
+			"backgroundColor": "#ff5d0b",
+			"color": "#ffffff",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "List",
+			"regex": {
+				"pattern": "\\b[Ll]ist\\b"
+			},
+			"backgroundColor": "#ff5d0b",
+			"color": "#ffffff",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "Dev",
+			"regex": {
+				"pattern": "\\bDev\\b"
+			},
+			"backgroundColor": "#134e4a",
+			"color": "#99f6e4",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "NuChk",
+			"regex": {
+				"pattern": "\\bNuChk\\b"
+			},
+			"backgroundColor": "#134e4a",
+			"color": "#99f6e4",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "_で始まる識別子",
+			"regex": {
+				"pattern": "\\b_[A-Za-z0-9_]+\\b"
+			},
+			"backgroundColor": "#1e1e1e",
+			"color": "#ffffff",
+			"overviewRulerColor": "#00000000"
+		},
+		{
+			"text": "resolve()/Resolve()",
+			"regex": {
+				"pattern": "\\b[Rr]esolve\\s*\\(\\s*\\)"
+			},
+			"backgroundColor": "#ff8800",
+			"color": "#000000",
+			"overviewRulerColor": "#00000000"
+		}
+	],
+	"todo-tree.highlights.defaultHighlight": {
+		"hideFromOverviewRuler": true
+	},
+	"todo-tree.tree.scanMode": "workspace",
+	"editor.semanticTokenColorCustomizations": {
+		"enabled": true,
+		"rules": {
+			"variable": {
+				"foreground": "#9CDCFE"
+			},
+			"variable.readonly": {
+				"foreground": "#b06e8e",
+				"fontStyle": "bold"
+			},
+			"property": {
+				"foreground": "#9b9eef"
+			},
+			"enum": {
+				"foreground": "#ff4213",
+				"fontStyle": "bold"
+			},
+			"enumMember": {
+				"foreground": "#ff6a38",
+				"fontStyle": "bold"
+			},
+			"extensionMethod": {
+				"foreground": "#ff0099"
+			},
+			"keyword": {
+				"foreground": "#1943ff"
+			},
+			"operator": {
+				"foreground": "#ff1af7"
+			},
+			"modifier": {
+				"foreground": "#cc54fc"
+			},
+			"parameter": {
+				"foreground": "#6d96ef"
+			},
+			"class": {
+				"foreground": "#11da0a",
+				"fontStyle": "bold"
+			},
+			"class.static": {
+				"foreground": "#00ff00",
+				"fontStyle": "bold"
+			},
+			"field": {
+				"foreground": "#d8f641",
+				"fontStyle": "bold"
+			},
+			"field.static": {
+				"foreground": "#ff0000",
+				"fontStyle": "bold"
+			},
+			"constant": {
+				"foreground": "#d14848",
+				"fontStyle": "bold"
+			},
+			"method.constructor": {
+				"foreground": "#ff8800",
+				"fontStyle": "italic"
+			},
+			"method.deprecated": {
+				"fontStyle": "strikethrough"
+			}
+		}
+	},
+	"editor.semanticHighlighting.enabled": true,
+	"editor.tokenColorCustomizations": {
+		"textMateRules": [
+			{
+				"scope": [
+					"keyword.operator.expression.pattern.is.cs",
+					"keyword.operator.comparison.cs",
+					"keyword.operator.logical.cs",
+					"keyword.operator.assignment.cs"
+				],
+				"settings": {
+					"foreground": "#ffcc00",
+					"fontStyle": "italic bold"
+				}
+			},
+			{
+				"scope": [
+					"entity.name.variable.local.cs"
+				],
+				"settings": {
+					"foreground": "#e1852e"
+				}
+			},
+			{
+				"scope": [
+					"entity.name.variable"
+				],
+				"settings": {
+					"foreground": "#46acff"
+				}
+			},
+			{
+				"scope": "variable.other.readwrite.cs",
+				"settings": {
+					"foreground": "#964c01"
+				}
+			},
+			{
+				"scope": [
+					"variable.other.object.cs",
+					"entity.name.variable.property.cs"
+				],
+				"settings": {
+					"foreground": "#ff0000"
+				}
+			},
+			{
+				"scope": "variable.other.property",
+				"settings": {
+					"foreground": "#535589"
+				}
+			},
+			{
+				"scope": "variable.other.readonly.cs",
+				"settings": {
+					"foreground": "#ff2727",
+					"fontStyle": "bold"
+				}
+			},
+			{
+				"scope": [
+					"constant",
+					"support.constant",
+					"string",
+					"numeric",
+					"constant.numeric",
+					"constant.language",
+					"variable.other.constant",
+					"variable.other.constant.static",
+					"entity.name.variable.tuple-element.cs",
+					"keyword.operator.expression.pattern.is.cs"
+				],
+				"settings": {
+					"foreground": "#FF4500"
+				}
+			},
+			{
+				"scope": [
+					"variable.other.enummember",
+					"variable.other.enummember.cpp",
+					"constant.language.enum",
+					"constant.language.enumMember",
+					"storage.type.enum"
+				],
+				"settings": {
+					"foreground": "#ff0000"
+				}
+			},
+			{
+				"scope": [
+					"entity.name.function",
+					"support.function"
+				],
+				"settings": {
+					"foreground": "#b665f7"
+				}
+			},
+			{
+				"scope": "storage.modifier.readonly.cs",
+				"settings": {
+					"foreground": "#ff1988",
+					"fontStyle": "bold"
+				}
+			},
+			{
+				"scope": "keyword.modifier.cs",
+				"settings": {
+					"foreground": "#ff8800",
+					"fontStyle": "bold"
+				}
+			},
+			{
+				"scope": "storage.type.string.cs",
+				"settings": {
+					"foreground": "#FF00FF",
+					"fontStyle": "bold"
+				}
+			},
+			{
+				"scope": [
+					"keyword.operator",
+					"variable.parameter"
+				],
+				"settings": {
+					"foreground": "#ff7912"
+				}
+			},
+			{
+				"scope": "punctuation.separator.comma",
+				"settings": {
+					"foreground": "#4dff00",
+					"fontStyle": "bold underline italic"
+				}
+			},
+			{
+				"scope": "punctuation.section.brackets",
+				"settings": {
+					"foreground": "#FF0000"
+				}
+			},
+			{
+				"scope": "support.class",
+				"settings": {
+					"foreground": "#ff2727",
+					"fontStyle": "bold"
+				}
+			},
+			{
+				"scope": "entity.name.variable.field",
+				"settings": {
+					"foreground": "#ff2727",
+					"fontStyle": "bold"
+				}
+			},
+			{
+				"scope": [
+					"storage.type.accessor.init.cs"
+				],
+				"settings": {
+					"foreground": "#ff0000",
+					"fontStyle": "italic bold underline"
+				}
+			}
+		]
+	},
+	"github.copilot.enable": {
+		"*": false,
+		"plaintext": false,
+		"markdown": false,
+		"scminput": false
+	},
+	"github.copilot.editor.enableAutoCompletions": false,
+	"editor.inlineSuggest.enabled": false,
+	"github.copilot.chat.welcomeMessage.enabled": false,
+	"[csharp]": {
+		"editor.defaultFormatter": "ms-dotnettools.csharp"
+	},
+	"chatgpt.openOnStartup": true,
+	"workbench.editorAssociations": {
+		"*.md": "default"
+	},
+	"markdown.preview.doubleClickToSwitchToEditor": false,
+	"[markdown]": {
+		"editor.defaultFormatter": "yzhang.markdown-all-in-one"
+	},
+}

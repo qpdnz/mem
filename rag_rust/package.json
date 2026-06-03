@@ -1,0 +1,11 @@
+{
+  "name": "rag_rust",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write \"static/**/*.html\"",
+    "format:html": "prettier --write \"static/**/*.html\""
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3"
+  }
+}

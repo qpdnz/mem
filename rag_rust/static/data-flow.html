@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Rust データフロー早見表</title>
+    <style>
+      :root {
+        --bg: #dfe9f7;
+        --panel: #ffffff;
+        --ink: #10243e;
+        --muted: #4d6178;
+        --line: #b9c9dc;
+        --accent: #0b5fff;
+        --accent-soft: #eaf1ff;
+        --warn: #b45309;
+        --warn-soft: #fff7ed;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 90% -20%, #c8dcff 0%, transparent 35%),
+          radial-gradient(circle at -10% 20%, #d7f1e8 0%, transparent 30%),
+          var(--bg);
+        font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      }
+      .wrap { max-width: 1500px; margin: 0 auto; padding: 22px 18px 44px; }
+      .hero {
+        background: linear-gradient(135deg, #0b1b34 0%, #1d3f70 70%, #245c9d 100%);
+        color: #fff;
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .hero h1 { margin: 0 0 8px; font-size: 24px; }
+      .hero p { margin: 0; color: #d4e3ff; }
+      .grid { display: grid; gap: 12px; margin-top: 14px; }
+      .panel {
+        background: var(--panel);
+        border: 3px solid #8ea7c4;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 1px 0 #b4c4d6;
+      }
+      h2 {
+        margin: 0 0 12px;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: 0.01em;
+        color: #0d2b52;
+      }
+      h3 {
+        font-weight: 850;
+        font-size: 18px;
+        color: #123766;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 15px; }
+      th, td {
+        border-bottom: 2px solid #b7c9dc;
+        border-right: 1px solid #cad7e5;
+        text-align: left;
+        vertical-align: top;
+        padding: 10px;
+      }
+      th {
+        background: #e8f0fb;
+        font-weight: 900;
+        color: #123766;
+      }
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .warn {
+        background: var(--warn-soft);
+        border: 1px solid #fed7aa;
+        color: var(--warn);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 13px;
+      }
+      .flow {
+        display: grid;
+        gap: 8px;
+      }
+      .step {
+        border: 3px solid #a9bfd8;
+        border-radius: 10px;
+        padding: 14px;
+        background: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .chunk-flow-list {
+        display: grid;
+        gap: 18px;
+      }
+      .chunk-flow {
+        border: 3px solid #7e9cc0;
+        border-radius: 12px;
+        padding: 16px;
+        background: #e9f2ff;
+      }
+      .chunk-flow h4 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        font-weight: 900;
+        color: #123766;
+      }
+      .chunk-step {
+        margin-top: 8px;
+        padding: 12px;
+        border-radius: 8px;
+        border: 3px solid #aec3dc;
+        background: #fff;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .chunk-step .mono {
+        display: block;
+        margin-top: 6px;
+      }
+      .mono { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+      a { color: #0a4ecf; }
+      .focus-wide {
+        margin-top: 28px;
+        margin-bottom: 28px;
+      }
+      .focus-wide {
+        padding-top: 26px;
+        padding-bottom: 30px;
+      }
+      .focus-wide h2 {
+        margin-bottom: 20px;
+      }
+      .focus-wide h3 {
+        margin-top: 22px !important;
+        margin-bottom: 14px !important;
+      }
+      .focus-wide table {
+        table-layout: auto;
+        margin-top: 10px;
+      }
+      .focus-wide th,
+      .focus-wide td {
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+      .focus-wide .flow {
+        gap: 14px;
+      }
+      .focus-wide .chunk-flow-list {
+        gap: 24px;
+      }
+      .focus-wide .chunk-flow {
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+      .focus-wide .chunk-step {
+        margin-top: 12px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+      @media (min-width: 900px) {
+        .cols-2 { grid-template-columns: 1fr 1fr; }
+      }
+      @media (min-width: 1200px) {
+        .cols-2 { grid-template-columns: 1.2fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1>RAG Rust データフロー早見表</h1>
+        <p>どのテーブルがあり、どう変換され、どのファイルで処理しているかを1ページで確認できます。</p>
+        <p style="margin-top: 8px; font-size: 13px;">
+          関連: <a href="/chunking-rules.html" style="color:#a9d0ff; text-decoration: underline;">chunks / documents の作り方ルール案 →</a>
+          <a href="/cs-rag-design.html" style="color:#a9d0ff; text-decoration: underline; margin-left: 10px;">お客様対応RAG 新規設計書 →</a>
+        </p>
+      </section>
+
+      <section class="panel" style="margin-top: 14px">
+        <h2>テーブル一覧</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>テーブル</th>
+              <th>役割</th>
+              <th>主なカラム</th>
+              <th>定義場所</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag">documents</span></td>
+              <td>文書メタ情報</td>
+              <td class="mono">id, title, category, visibility, status</td>
+              <td class="mono">src/m02_db.rs (CREATE TABLE documents)</td>
+            </tr>
+            <tr>
+              <td><span class="tag">chunks</span></td>
+              <td>検索対象の本文断片</td>
+              <td class="mono">id, document_id, chunk_index, content</td>
+              <td class="mono">src/m02_db.rs (CREATE TABLE chunks)</td>
+            </tr>
+            <tr>
+              <td><span class="tag">embeddings</span></td>
+              <td>チャンクのベクトル</td>
+              <td class="mono">id, chunk_id, embedding_model, embedding_json</td>
+              <td class="mono">src/m02_db.rs (CREATE TABLE embeddings)</td>
+            </tr>
+            <tr>
+              <td><span class="tag">raw_inquiries</span></td>
+              <td>問い合わせ生文・サニタイズ文の保管想定</td>
+              <td class="mono">id, raw_text, sanitized_text, detected_pii_json</td>
+              <td class="mono">src/m02_db.rs (CREATE TABLE raw_inquiries)</td>
+            </tr>
+            <tr>
+              <td><span class="tag">rag_queries</span></td>
+              <td>RAG検索ログの保管想定</td>
+              <td class="mono">id, query_text, query_embedding_json, retrieved_chunks_json</td>
+              <td class="mono">src/m02_db.rs (CREATE TABLE rag_queries)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel" style="margin-top: 14px">
+        <h2>分割ルール早見表（元の文章 → どのテーブルの何カラムに入るか）</h2>
+        <p style="margin-top: 0; color: var(--muted); font-size: 13px">
+          1本のマニュアル文書を「メタ情報」「本文の1手順」「ベクトル」の3粒度に手で分けて、別々のテーブルに入れています。<br />
+          自動分割アルゴリズムはありません（<span class="mono">src/m03_seed.rs</span> に直書きしているのが現状）。
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>テーブル</th>
+              <th>切り出す単位（ルール）</th>
+              <th>元の文章のどこから抜くか</th>
+              <th>入れる値の例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag">documents</span></td>
+              <td>1マニュアル文書 = 1行</td>
+              <td>マニュアルの「表題」と「分類」だけを抜き出す（本文は入れない）</td>
+              <td class="mono">id=doc_002 / title="ログインできない時の対応" / category="認証" / visibility="cs_only" / status="approved"</td>
+            </tr>
+            <tr>
+              <td><span class="tag">chunks</span></td>
+              <td>マニュアル本文を「1手順 = 1文（句点まで）」で1行</td>
+              <td>本文を「。」区切りの1手順ごとに切る。<br />親文書のIDと、文書内での順番(chunk_index)を持たせる</td>
+              <td class="mono">id=chunk_003 / document_id=doc_002 / chunk_index=1 / content="顧客がログインできない場合は…確認する。"</td>
+            </tr>
+            <tr>
+              <td><span class="tag">embeddings</span></td>
+              <td>1 chunk = 1ベクトル行</td>
+              <td>chunkの本文を5次元の数値ベクトルに変換し、JSON文字列にして保存</td>
+              <td class="mono">id=emb_chunk_003 / chunk_id=chunk_003 / embedding_json="[0.05,0.9,0.02,0.02,0.01]"</td>
+            </tr>
+            <tr>
+              <td><span class="tag">raw_inquiries</span></td>
+              <td>顧客からの生問い合わせ1件 = 1行（<strong>seedでは未投入</strong>）</td>
+              <td>本来は「生文」と「PIIマスク後の文」を分けて入れる隔離領域。<br />RAG検索の対象外（chunksへは流れない）</td>
+              <td class="mono">(seedでは作られない / src 配下に INSERT 実装なし)</td>
+            </tr>
+            <tr>
+              <td><span class="tag">rag_queries</span></td>
+              <td>ユーザがUIで投げた質問1件 = 1行（<strong>seedでは未投入</strong>）</td>
+              <td>質問文・クエリベクトル・取得したchunk IDのリストを記録する想定の検索ログ</td>
+              <td class="mono">(seedでは作られない)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin: 18px 0 8px">具体例: doc_002「ログインできない時の対応」が3テーブルに分かれる様子</h3>
+        <div class="flow">
+          <div class="step" style="background:#fff7ed; border-color:#f0c895">
+            元のマニュアル（人間が書いた文）<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              タイトル: 「ログインできない時の対応」（分類: 認証）<br />
+              本文1: 「顧客がログインできない場合は、メールアドレス、アカウント状態、パスワード再設定履歴を確認する。」
+            </div>
+          </div>
+          <div class="step">
+            ↓ <strong>ルールA:</strong> タイトルと分類だけ抜き出して <span class="mono">documents</span> 行に<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              documents { id="doc_002", title="ログインできない時の対応", category="認証", visibility="cs_only", status="approved" }
+            </div>
+            <div class="mono">src/m03_seed.rs:29-32</div>
+          </div>
+          <div class="step">
+            ↓ <strong>ルールB:</strong> 本文を「。」で区切った1手順を <span class="mono">chunks</span> 行に（親IDと順番をつける）<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              chunks { id="chunk_003", document_id="doc_002", chunk_index=1, content="顧客がログインできない場合は…確認する。" }
+            </div>
+            <div class="mono">src/m03_seed.rs:55-62</div>
+          </div>
+          <div class="step">
+            ↓ <strong>ルールC:</strong> その chunk のベクトル(<span class="mono">Vec&lt;f64&gt;</span>)を JSON 文字列化して <span class="mono">embeddings</span> 行に<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              Vec&lt;f64&gt; [0.05, 0.9, 0.02, 0.02, 0.01] → "[0.05,0.9,0.02,0.02,0.01]"<br />
+              embeddings { id="emb_chunk_003", chunk_id="chunk_003", embedding_model="dummy-embedding-v1", embedding_json="[0.05,0.9,0.02,0.02,0.01]" }
+            </div>
+            <div class="mono">src/m03_seed.rs:61, 171-181</div>
+          </div>
+          <div class="step" style="background:#f5f5f5; border-color:#c8c8c8">
+            <span class="mono">raw_inquiries</span> / <span class="mono">rag_queries</span> は seed 時点では <strong>1行も作らない</strong>（実行時にユーザ操作で入る想定の領域）
+          </div>
+        </div>
+
+        <h3 style="margin: 22px 0 10px">将来構想: 生の問い合わせを PII マスキング → AI要約 → JSON保存する想定フロー</h3>
+        <p style="margin-top: 0; color: var(--muted); font-size: 13px">
+          現状の seed は人間が直接 title / chunks に整形済みの文を書いているが、本番運用では「人間が書くタイトルが適切とは限らない」「生問い合わせに個人情報が混じる」という前提が必要。<br />
+          そのため、以下の流れで <span class="mono">raw_inquiries</span> → <span class="mono">documents</span> / <span class="mono">chunks</span> へ変換する構想を持っておく。
+        </p>
+        <div class="flow">
+          <div class="step" style="background:#fff7ed; border-color:#f0c895">
+            ① 顧客からの生問い合わせ（PII を含む）<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              例: 「[顧客名]([EMAIL], [PHONE])です。ログインできません。パスワードを再設定しても入れない…」
+            </div>
+            <div class="mono">→ raw_inquiries.raw_text にそのまま保存（RAG検索対象外の隔離領域）</div>
+          </div>
+          <div class="step">
+            ② <strong>PII マスキング</strong>: 氏名・メール・電話番号などを検出して伏字化<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              「[NAME](([EMAIL], [PHONE]))です。ログインできません。パスワードを再設定しても入れない…」
+            </div>
+            <div class="mono">→ raw_inquiries.sanitized_text / detected_pii_json に保存</div>
+          </div>
+          <div class="step">
+            ③ <strong>AI要約</strong>: サニタイズ後の文を LLM に渡し、タイトル・分類・本文(1手順ごと)を JSON で出力させる<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              {<br />
+              &nbsp;&nbsp;"title": "パスワード再設定後もログイン不可の対応",<br />
+              &nbsp;&nbsp;"category": "認証",<br />
+              &nbsp;&nbsp;"chunks": [<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;"再設定リンクの有効期限と発行履歴を確認する。",<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;"アカウントロック・多要素認証の失敗回数を確認する。"<br />
+              &nbsp;&nbsp;]<br />
+              }
+            </div>
+            <div class="mono">→ 人が書いたタイトルに依存せず、検索しやすい形に正規化される</div>
+          </div>
+          <div class="step">
+            ④ 上記 JSON を分解して既存ルール A/B/C と同じく <span class="mono">documents</span> / <span class="mono">chunks</span> / <span class="mono">embeddings</span> に流し込む<br />
+            <div class="mono" style="font-weight:400; margin-top:6px">
+              ・JSON.title → documents.title<br />
+              ・JSON.category → documents.category<br />
+              ・JSON.chunks[i] → chunks.content（chunk_index = i+1）<br />
+              ・各 chunk → embeddings に5次元ベクトル化して JSON 文字列で保存
+            </div>
+          </div>
+          <div class="step" style="background:#f0f7ff; border-color:#9ec1ea">
+            <strong>狙い:</strong><br />
+            ・生 PII を RAG 検索対象（chunks）に絶対に流さない（隔離は raw_inquiries だけで完結）<br />
+            ・人間がつけたブレのあるタイトルを AI が正規化し、検索ヒット率を安定させる<br />
+            ・要約後の JSON を保存しておけば、再投入・再ベクトル化が決定論的にできる（生文の再 AI 推論が不要）
+          </div>
+          <div class="step" style="background:#fef2f2; border-color:#f5a8a8; color:#9b2c2c">
+            <strong>未実装:</strong> ②③④ のいずれも現状コードにはなし。<span class="mono">raw_inquiries</span> / <span class="mono">rag_queries</span> はテーブル定義のみで INSERT 実装は存在しない（<span class="mono">src/m02_db.rs</span>）。
+          </div>
+        </div>
+      </section>
+
+      <section class="grid cols-2">
+        <article class="panel">
+          <h2>変換ルール: Seed投入フロー（実装済み）</h2>
+          <div class="flow">
+            <div class="step">
+              1. <span class="mono">documents</span> を INSERT
+              <div class="mono">src/m03_seed.rs:24-37</div>
+            </div>
+            <div class="step">
+              2. 各チャンク本文を <span class="mono">chunks</span> に INSERT
+              <div class="mono">src/m03_seed.rs:150-162</div>
+            </div>
+            <div class="step">
+              3. ベクトル <span class="mono">Vec&lt;f64&gt;</span> を JSON 文字列化して
+              <span class="mono">embeddings.embedding_json</span> に INSERT
+              <div class="mono">src/m03_seed.rs:163-173</div>
+            </div>
+            <div class="step">
+              4. Seedファイルの本文は Sudachi ベース簡易埋め込みで推定
+              <div class="mono">src/m03_seed.rs:131-133, src/m04_embedding.rs</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>変換ルール: 検索フロー（実装済み）</h2>
+          <div class="flow">
+            <div class="step">
+              1. 入力クエリを正規化
+              <div class="mono">normalize_query_text()</div>
+              <div class="mono">src/m05_api/m05_api_search_text.rs:32-33</div>
+            </div>
+            <div class="step">
+              2. クエリ文字列をベクトル化
+              <div class="mono">build_query_embedding_with_sudachi()</div>
+              <div class="mono">src/m05_api/m05_api_search_text.rs:34-35</div>
+            </div>
+            <div class="step">
+              3. <span class="mono">embeddings + chunks + documents</span> を JOINし候補取得
+              <div class="mono">src/m05_api/m05_api_search_text.rs:47-67</div>
+            </div>
+            <div class="step">
+              4. <span class="mono">embedding_json</span> を配列に戻して cosine 類似度計算
+              <div class="mono">src/m05_api/m05_api_search_text.rs:127-130</div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>raw_inquiries 関連の現状</h2>
+        <div class="warn">
+          <div><strong>raw_inquiries → raw_inquiries（raw_text → sanitized_text）</strong>: 現在は変換処理未実装（テーブル定義のみ）。</div>
+          <div><strong>raw_inquiries → chunks</strong>: 現在は変換処理未実装。chunks 作成は seed 処理からのみ。</div>
+        </div>
+        <p class="mono" style="margin-top:10px">
+          根拠: src/m02_db.rs のスキーマ定義 / src 配下に raw_inquiries INSERT 実装なし
+        </p>
+      </section>
+
+      <section class="panel focus-wide">
+        <h2>変換の具体例</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>元の文</th>
+              <th>変換後（正規化）</th>
+              <th>さらに変換後（5次元ベクトル）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>請求書の宛名を変更したいです。</td>
+              <td class="mono">請求書 宛名 変更 手順</td>
+              <td class="mono">[0.91, 0.05, 0.02, 0.01, 0.00]</td>
+            </tr>
+            <tr>
+              <td>ログインできないので対応方法を教えてください。</td>
+              <td class="mono">ログイン 障害 対応 手順</td>
+              <td class="mono">[0.05, 0.90, 0.02, 0.02, 0.01]</td>
+            </tr>
+            <tr>
+              <td>株式会社サンプルの請求先住所を変更したいです。</td>
+              <td class="mono">請求先 住所 変更</td>
+              <td class="mono">[0.88, 0.07, 0.02, 0.01, 0.00]</td>
+            </tr>
+            <tr>
+              <td>[顧客名]のアカウントロックを解除したい。</td>
+              <td class="mono">アカウント ロック 解除</td>
+              <td class="mono">[0.06, 0.87, 0.02, 0.03, 0.02]</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel focus-wide">
+        <h2>事前投入データの変換過程（マニュアル）</h2>
+        <p style="margin-top: 0; color: var(--muted); font-size: 13px">
+          ここは「seed時に最初から入れているデータ」が、どの順でどの形に変換されるかを説明しています。
+        </p>
+        <div class="flow">
+          <div class="step">
+            1. 文書メタを <span class="mono">documents</span> に登録
+            <div class="mono">例: doc_001 / 「請求書の宛名変更対応」 / status=approved</div>
+          </div>
+          <div class="step">
+            2. 本文を <span class="mono">chunks.content</span> として登録
+            <div class="mono">例: chunk_001 = 「顧客から請求書の宛名変更を依頼された場合は...」</div>
+          </div>
+          <div class="step">
+            3. ベクトルを作成して <span class="mono">embeddings.embedding_json</span> に保存
+            <div class="mono">例: chunk_001 -> [0.91, 0.05, 0.02, 0.01, 0.0]</div>
+          </div>
+        </div>
+
+        <h3 style="margin: 12px 0 8px; font-size: 15px">固定データ（コード直書き）の変換例</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>chunk_id</th>
+              <th>元の本文（chunks.content）</th>
+              <th>保存ベクトル（embeddings.embedding_json）</th>
+              <th>処理場所</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">chunk_001</td>
+              <td>顧客から請求書の宛名変更を依頼された場合は、本人確認後、契約名義と請求先情報を確認する。</td>
+              <td class="mono">[0.91, 0.05, 0.02, 0.01, 0.0]</td>
+              <td class="mono">src/m03_seed.rs:39-46</td>
+            </tr>
+            <tr>
+              <td class="mono">chunk_002</td>
+              <td>契約名義の変更を伴う場合は、営業担当または管理部に確認する。</td>
+              <td class="mono">[0.84, 0.09, 0.03, 0.01, 0.01]</td>
+              <td class="mono">src/m03_seed.rs:47-54</td>
+            </tr>
+            <tr>
+              <td class="mono">chunk_003</td>
+              <td>顧客がログインできない場合は、メールアドレス、アカウント状態、パスワード再設定履歴を確認する。</td>
+              <td class="mono">[0.05, 0.9, 0.02, 0.02, 0.01]</td>
+              <td class="mono">src/m03_seed.rs:55-62</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin: 14px 0 8px; font-size: 15px">3件それぞれの変換過程</h3>
+        <div class="chunk-flow-list">
+          <div class="chunk-flow">
+            <h4><span class="mono">chunk_001</span> の変換</h4>
+            <div class="chunk-step">
+              1. 元データ（本文）
+              <div>顧客から請求書の宛名変更を依頼された場合は、本人確認後、契約名義と請求先情報を確認する。</div>
+              <div class="mono">src/m03_seed.rs:44</div>
+            </div>
+            <div class="chunk-step">
+              2. chunks に保存
+              <div class="mono">INSERT INTO chunks (... content=上記本文 ...)</div>
+              <div class="mono">src/m03_seed.rs:150-162</div>
+            </div>
+            <div class="chunk-step">
+              3. ベクトル値を JSON 文字列化して embeddings に保存
+              <div class="mono">Vec&lt;f64&gt; [0.91, 0.05, 0.02, 0.01, 0.0]</div>
+              <div class="mono">-&gt; \"[0.91,0.05,0.02,0.01,0.0]\"</div>
+              <div class="mono">src/m03_seed.rs:45, 163-173</div>
+            </div>
+          </div>
+
+          <div class="chunk-flow">
+            <h4><span class="mono">chunk_002</span> の変換</h4>
+            <div class="chunk-step">
+              1. 元データ（本文）
+              <div>契約名義の変更を伴う場合は、営業担当または管理部に確認する。</div>
+              <div class="mono">src/m03_seed.rs:52</div>
+            </div>
+            <div class="chunk-step">
+              2. chunks に保存
+              <div class="mono">INSERT INTO chunks (... content=上記本文 ...)</div>
+              <div class="mono">src/m03_seed.rs:150-162</div>
+            </div>
+            <div class="chunk-step">
+              3. ベクトル値を JSON 文字列化して embeddings に保存
+              <div class="mono">Vec&lt;f64&gt; [0.84, 0.09, 0.03, 0.01, 0.01]</div>
+              <div class="mono">-&gt; \"[0.84,0.09,0.03,0.01,0.01]\"</div>
+              <div class="mono">src/m03_seed.rs:53, 163-173</div>
+            </div>
+          </div>
+
+          <div class="chunk-flow">
+            <h4><span class="mono">chunk_003</span> の変換</h4>
+            <div class="chunk-step">
+              1. 元データ（本文）
+              <div>顧客がログインできない場合は、メールアドレス、アカウント状態、パスワード再設定履歴を確認する。</div>
+              <div class="mono">src/m03_seed.rs:60</div>
+            </div>
+            <div class="chunk-step">
+              2. chunks に保存
+              <div class="mono">INSERT INTO chunks (... content=上記本文 ...)</div>
+              <div class="mono">src/m03_seed.rs:150-162</div>
+            </div>
+            <div class="chunk-step">
+              3. ベクトル値を JSON 文字列化して embeddings に保存
+              <div class="mono">Vec&lt;f64&gt; [0.05, 0.9, 0.02, 0.02, 0.01]</div>
+              <div class="mono">-&gt; \"[0.05,0.9,0.02,0.02,0.01]\"</div>
+              <div class="mono">src/m03_seed.rs:61, 163-173</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin: 12px 0 8px; font-size: 15px">追加履歴JSON（samples）から投入する場合</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>段階</th>
+              <th>変換内容</th>
+              <th>処理場所</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>入力</td>
+              <td class="mono">samples/support_histories_seed.json の chunks[] テキスト</td>
+              <td class="mono">src/m03_seed.rs:116-124</td>
+            </tr>
+            <tr>
+              <td>埋め込み生成</td>
+              <td class="mono">infer_embedding_from_text() -> build_query_embedding_with_sudachi()</td>
+              <td class="mono">src/m03_seed.rs:101-110, 131-133</td>
+            </tr>
+            <tr>
+              <td>保存</td>
+              <td class="mono">Vec&lt;f64&gt; を JSON 文字列化して embeddings に INSERT</td>
+              <td class="mono">src/m03_seed.rs:163-173</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>関連ファイル</h2>
+        <ul>
+          <li><a href="/index.html">/index.html</a> - メインUI</li>
+          <li class="mono">src/m02_db.rs - テーブル定義</li>
+          <li class="mono">src/m03_seed.rs - chunks/embeddings への保存</li>
+          <li class="mono">src/m05_api/m05_api_search_text.rs - 検索時の変換とJOIN</li>
+          <li class="mono">src/m04_embedding.rs - 埋め込み生成と類似度</li>
+        </ul>
+      </section>
+    </div>
+  </body>
+</html>

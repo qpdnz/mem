@@ -1,0 +1,10 @@
+/target
+/data
+*.db
+*.sqlite
+*.sqlite3
+*.dic
+/.vscode
+/node_modules
+npm-debug.log*
+.env

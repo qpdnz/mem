@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refactor Planner"
+  short_description: "Plan and implement responsibility-focused refactors"
+  default_prompt: "Use $refactor-planner to inspect this codebase against its local rules first, then apply generic responsibility boundaries where no project-specific convention exists. Produce concrete refactor steps or implement the requested fix."
