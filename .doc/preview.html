@@ -1,0 +1,1376 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Webシステム prefix 命名ルールガイド v2 | 連番_役割_大_中_小</title>
+  <style>
+    :root{
+      --bg:#f6f8fc;
+      --panel:#ffffff;
+      --ink:#172033;
+      --muted:#64748b;
+      --line:#d9e4f5;
+      --blue:#2563eb;
+      --blue-2:#dbeafe;
+      --sky:#0891b2;
+      --green:#16a34a;
+      --green-2:#dcfce7;
+      --orange:#f59e0b;
+      --orange-2:#fef3c7;
+      --purple:#8b5cf6;
+      --purple-2:#ede9fe;
+      --red:#ef4444;
+      --red-2:#fee2e2;
+      --slate:#0f172a;
+      --code:#111827;
+      --shadow:0 18px 50px rgba(30,64,175,.10);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37,99,235,.12), transparent 28rem),
+        radial-gradient(circle at 92% 8%, rgba(139,92,246,.14), transparent 28rem),
+        var(--bg);
+      color:var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      line-height:1.65;
+    }
+    a{color:var(--blue); text-decoration:none}
+    code,kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background:#eef5ff;
+      color:#1e3a8a;
+      padding:.12rem .34rem;
+      border-radius:.45rem;
+      white-space:nowrap;
+    }
+    pre{
+      margin:0;
+      padding:1rem 1.1rem;
+      border-radius:1rem;
+      overflow:auto;
+      background:var(--code);
+      color:#f8fafc;
+      border:1px solid #263242;
+      font-size:.94rem;
+      line-height:1.7;
+    }
+    .app{
+      display:grid;
+      grid-template-columns: 280px minmax(0,1fr);
+      min-height:100vh;
+    }
+    .side{
+      position:sticky; top:0;
+      height:100vh;
+      padding:1.2rem 1rem;
+      background:rgba(255,255,255,.86);
+      backdrop-filter: blur(18px);
+      border-right:1px solid var(--line);
+      overflow:auto;
+    }
+    .brand{
+      display:flex; align-items:center; gap:.7rem;
+      padding:.7rem .65rem 1.1rem;
+      border-bottom:1px solid var(--line);
+      margin-bottom:1rem;
+    }
+    .logo{
+      width:42px; height:42px;
+      display:grid; place-items:center;
+      border-radius:14px;
+      color:white;
+      font-weight:900;
+      background:linear-gradient(135deg, var(--blue), var(--purple));
+      box-shadow:0 8px 18px rgba(37,99,235,.25);
+    }
+    .brand strong{display:block; font-size:1rem}
+    .brand small{display:block; color:var(--muted); line-height:1.3}
+    .nav a{
+      display:flex; align-items:center; gap:.55rem;
+      padding:.58rem .7rem;
+      margin:.15rem 0;
+      border-radius:.9rem;
+      color:#334155;
+      font-size:.93rem;
+    }
+    .nav a:hover{background:#eef5ff; color:var(--blue)}
+    .nav .dot{width:.65rem; height:.65rem; border-radius:50%; background:#bfdbfe}
+    .legend{
+      margin-top:1.1rem;
+      padding:.8rem;
+      border-radius:1rem;
+      background:#f8fbff;
+      border:1px solid var(--line);
+      font-size:.82rem;
+      color:var(--muted);
+    }
+    .main{padding:2rem clamp(1rem, 3vw, 3rem) 5rem}
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:30px;
+      padding:2rem;
+      min-height:360px;
+      background:
+        linear-gradient(135deg, rgba(15,23,42,.96), rgba(30,64,175,.92)),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,.18), transparent 22rem);
+      color:white;
+      box-shadow:var(--shadow);
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      width:520px;height:520px;
+      right:-180px;bottom:-260px;
+      border-radius:50%;
+      background:rgba(255,255,255,.08);
+    }
+    .eyebrow{
+      display:inline-flex; align-items:center; gap:.5rem;
+      padding:.36rem .7rem;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(255,255,255,.1);
+      color:#dbeafe;
+      font-weight:700;
+      font-size:.9rem;
+    }
+    h1{
+      font-size:clamp(2.25rem, 5vw, 4.7rem);
+      line-height:1.03;
+      letter-spacing:-.06em;
+      margin:1rem 0 1rem;
+      max-width:1040px;
+    }
+    h2{
+      font-size:clamp(1.65rem,3vw,2.35rem);
+      line-height:1.2;
+      letter-spacing:-.035em;
+      margin:0 0 1rem;
+    }
+    h3{font-size:1.25rem; margin:0 0 .8rem}
+    .hero p{max-width:900px; color:#dbeafe; font-size:1.05rem}
+    .hero-grid{
+      position:relative;
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap:.65rem;
+      margin-top:1.6rem;
+      max-width:1120px;
+      z-index:1;
+    }
+    .seg{
+      padding:.85rem .8rem;
+      border-radius:1.05rem;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .seg b{display:block; font-size:1rem}
+    .seg span{display:block; color:#bfdbfe; font-size:.82rem}
+    .seg:nth-child(1){border-color:rgba(245,158,11,.58)}
+    .seg:nth-child(2){border-color:rgba(34,197,94,.58)}
+    .seg:nth-child(3){border-color:rgba(96,165,250,.58)}
+    .seg:nth-child(4){border-color:rgba(168,85,247,.58)}
+    .seg:nth-child(5){border-color:rgba(45,212,191,.58)}
+    .section{margin-top:2.2rem}
+    .card{
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:1.4rem;
+    }
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+    .grid-3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem}
+    .grid-4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem}
+    .rulebar{
+      display:flex; flex-wrap:wrap; gap:.55rem; align-items:center;
+      padding:1rem;
+      background:#fff;
+      border-radius:1.2rem;
+      border:1px solid var(--line);
+    }
+    .token{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.55rem .75rem;
+      border-radius:.8rem;
+      font-weight:800;
+      border:1px solid;
+      white-space:nowrap;
+    }
+    .token small{font-weight:600; opacity:.78}
+    .t-num{background:var(--orange-2); border-color:#fcd34d; color:#92400e}
+    .t-role{background:var(--green-2); border-color:#86efac; color:#166534}
+    .t-big{background:var(--blue-2); border-color:#93c5fd; color:#1e40af}
+    .t-mid{background:var(--purple-2); border-color:#c4b5fd; color:#5b21b6}
+    .t-small{background:#ccfbf1; border-color:#5eead4; color:#115e59}
+    .arrow{color:#94a3b8; font-weight:900}
+    .note{
+      padding:.9rem 1rem;
+      border-radius:1rem;
+      background:#f8fbff;
+      border:1px solid var(--line);
+      color:#475569;
+    }
+    .badgood{
+      display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:1rem;
+    }
+    .badgood .bad{border-left:5px solid var(--red)}
+    .badgood .good{border-left:5px solid var(--green)}
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:1rem;
+      background:#fff;
+    }
+    th,td{
+      padding:.72rem .8rem;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      text-align:left;
+    }
+    th{
+      background:#eef5ff;
+      color:#1e3a8a;
+      font-size:.88rem;
+      letter-spacing:.02em;
+    }
+    tr:last-child td{border-bottom:0}
+    td:first-child code{font-weight:800}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:.2rem .55rem;
+      border-radius:999px;
+      background:#eef5ff;
+      border:1px solid #bfdbfe;
+      color:#1d4ed8;
+      font-weight:800;
+      font-size:.82rem;
+      margin:.12rem .1rem;
+    }
+    .pill.green{background:var(--green-2); color:#166534; border-color:#86efac}
+    .pill.orange{background:var(--orange-2); color:#92400e; border-color:#fcd34d}
+    .pill.purple{background:var(--purple-2); color:#5b21b6; border-color:#c4b5fd}
+    .component-map{
+      position:relative;
+      min-height:850px;
+      border-radius:1.5rem;
+      border:1px solid var(--line);
+      background:
+        linear-gradient(180deg,#f8fbff,#ffffff);
+      overflow:hidden;
+    }
+    .browser{
+      position:absolute; inset:1rem;
+      background:#0f172a;
+      border-radius:1.3rem;
+      box-shadow:0 26px 80px rgba(15,23,42,.18);
+      overflow:hidden;
+      color:#e5e7eb;
+    }
+    .chrome{
+      height:44px;
+      display:flex; align-items:center; gap:.45rem;
+      background:#111827;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      padding:0 .9rem;
+    }
+    .lamp{width:12px;height:12px;border-radius:50%}
+    .r{background:#ef4444}.y{background:#f59e0b}.g{background:#22c55e}
+    .url{margin-left:.7rem; flex:1; height:24px; border-radius:999px; background:#1f2937; color:#94a3b8; padding:0 .85rem; font-size:.78rem; display:flex; align-items:center}
+    .screen{
+      display:grid;
+      grid-template-rows:64px 1fr 42px;
+      height:calc(100% - 44px);
+    }
+    .headbar{
+      display:flex; align-items:center;
+      padding:0 1.1rem;
+      background:#f8fafc; color:#172033;
+      border-bottom:1px solid #dbe5f1;
+      position:relative;
+    }
+    .hamb{width:34px;height:34px;border-radius:.65rem;background:#e0ecff; margin-right:.8rem}
+    .head-title{font-weight:900; color:#172033}
+    .head-actions{margin-left:auto; display:flex; gap:.45rem}
+    .head-actions span{width:34px;height:34px;border-radius:999px;background:#e2e8f0; display:block}
+    .workspace{
+      display:grid; grid-template-columns:220px 1fr 330px;
+      min-height:0;
+      background:#eef2f7;
+    }
+    .sidebar{
+      background:#0b1220;
+      border-right:1px solid #1e293b;
+      padding:1rem .8rem;
+      position:relative;
+    }
+    .side-title{font-size:.78rem;color:#94a3b8;margin:.3rem .4rem .7rem}
+    .side-item{
+      height:36px;border-radius:.7rem;margin:.35rem 0;background:#162033;
+      display:flex; align-items:center; gap:.55rem;padding:0 .65rem;color:#cbd5e1;font-size:.82rem
+    }
+    .side-item.active{background:#2563eb;color:white}
+    .content{
+      min-width:0;
+      padding:1rem;
+      position:relative;
+      overflow:hidden;
+    }
+    .breadcrumb{
+      height:30px; display:flex; align-items:center; gap:.4rem;
+      color:#64748b; font-size:.8rem; margin-bottom:.75rem;
+    }
+    .toolbar{
+      height:62px;
+      display:flex;
+      align-items:center; gap:.55rem;
+      background:white;
+      border:1px solid #dbe5f1;
+      border-radius:1rem;
+      padding:.55rem;
+      margin-bottom:.8rem;
+      position:relative;
+    }
+    .inputbox{height:38px; width:240px; border-radius:.7rem; background:#f1f5f9; border:1px solid #dbe5f1}
+    .btn{height:38px; border-radius:.7rem; background:#2563eb; min-width:84px}
+    .ghost{height:38px; border-radius:.7rem; background:#e2e8f0; min-width:70px}
+    .data-grid{
+      display:grid; grid-template-columns:1fr; grid-auto-rows:42px;
+      background:white; border:1px solid #dbe5f1; border-radius:1rem; overflow:hidden; position:relative;
+    }
+    .data-row{
+      display:grid; grid-template-columns:42px 1.4fr .9fr .9fr 1fr .8fr;
+      align-items:center; gap:.6rem; padding:0 .7rem; border-bottom:1px solid #e2e8f0;
+    }
+    .data-row.header{background:#eff6ff; color:#1e40af; font-weight:800; font-size:.78rem}
+    .cell{height:14px; border-radius:999px; background:#cbd5e1}
+    .cell.dark{background:#94a3b8}.cell.ok{background:#bbf7d0}.cell.warn{background:#fde68a}
+    .pager{
+      height:42px; background:white; border:1px solid #dbe5f1; border-radius:1rem;
+      margin-top:.8rem; display:flex; align-items:center; justify-content:flex-end; gap:.4rem; padding:0 .8rem;
+      position:relative;
+    }
+    .pagebtn{width:30px;height:28px;border-radius:.5rem;background:#e2e8f0}
+    .detail{
+      background:white;
+      border-left:1px solid #dbe5f1;
+      padding:1rem;
+      position:relative;
+    }
+    .detail-card{border:1px solid #dbe5f1;border-radius:1rem;padding:.8rem;margin-bottom:.8rem;background:#fff}
+    .detail-title{height:18px; width:58%; border-radius:999px;background:#94a3b8;margin-bottom:.7rem}
+    .detail-line{height:12px; border-radius:999px;background:#e2e8f0;margin:.45rem 0}
+    .tabs{display:flex; gap:.35rem; margin-bottom:.8rem}
+    .tab{height:30px; min-width:70px; border-radius:.7rem; background:#e0ecff}
+    .timeline{border-left:2px solid #bfdbfe; margin-left:.8rem; padding-left:1rem}
+    .tlitem{height:28px; margin:.55rem 0; background:#f1f5f9; border-radius:.6rem}
+    .footer{
+      background:#f8fafc; color:#64748b; border-top:1px solid #dbe5f1;
+      display:flex; align-items:center; justify-content:space-between; padding:0 1rem;
+      font-size:.78rem; position:relative;
+    }
+    .drawer{
+      position:absolute; right:1rem; bottom:5rem;
+      width:300px; height:210px;
+      border-radius:1rem; background:#fff;
+      border:2px solid #8b5cf6;
+      box-shadow:0 22px 50px rgba(15,23,42,.25);
+      padding:.9rem;
+    }
+    .drawer .line{height:13px;background:#e2e8f0;border-radius:999px;margin:.55rem 0}
+    .modal{
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-20%);
+      width:300px; height:138px;
+      border-radius:1rem; background:#fff;
+      border:2px solid #ef4444;
+      box-shadow:0 22px 50px rgba(15,23,42,.28);
+      padding:.9rem;
+      color:#172033;
+    }
+    .toast{
+      position:absolute; right:1.2rem; top:1.2rem;
+      min-width:230px; height:52px;
+      border-radius:.9rem; background:#ecfdf5;
+      border:2px solid #16a34a;
+      color:#166534; display:flex; align-items:center; padding:0 1rem; font-weight:900;
+    }
+    .callout{
+      position:absolute;
+      z-index:10;
+      max-width:270px;
+      padding:.42rem .55rem;
+      border-radius:.75rem;
+      background:white;
+      border:2px solid var(--blue);
+      color:#172033;
+      box-shadow:0 10px 30px rgba(15,23,42,.18);
+      font-size:.77rem;
+      line-height:1.35;
+    }
+    .callout code{display:block; margin-top:.2rem; white-space:normal; line-height:1.35}
+    .callout:before{
+      content:"";
+      position:absolute;
+      width:12px; height:12px;
+      background:white;
+      border-left:2px solid var(--blue);
+      border-top:2px solid var(--blue);
+      transform:rotate(-45deg);
+      left:-8px; top:18px;
+    }
+    .co-green{border-color:var(--green)} .co-green:before{border-color:var(--green)}
+    .co-orange{border-color:var(--orange)} .co-orange:before{border-color:var(--orange)}
+    .co-purple{border-color:var(--purple)} .co-purple:before{border-color:var(--purple)}
+    .co-red{border-color:var(--red)} .co-red:before{border-color:var(--red)}
+    .mini-screens{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:1rem;
+    }
+    .mini{
+      min-height:360px;
+      border:1px solid var(--line);
+      border-radius:1.25rem;
+      background:#fff;
+      padding:1rem;
+      overflow:hidden;
+    }
+    .mini h3{font-size:1rem}
+    .wire{
+      background:#f8fafc;
+      border:1px solid #dbe5f1;
+      border-radius:.9rem;
+      min-height:250px;
+      padding:.75rem;
+    }
+    .wire-row{height:28px;border-radius:.5rem;background:#e2e8f0;margin:.45rem 0}
+    .wire-row.short{width:56%}
+    .wire-row.mid{width:76%}
+    .wire-card{height:62px;border-radius:.75rem;background:#e0ecff;margin:.5rem 0}
+    .flow{
+      display:grid;
+      gap:.75rem;
+    }
+    .flow-step{
+      display:grid;
+      grid-template-columns:72px 210px minmax(0,1fr) minmax(0,1fr);
+      gap:.75rem;
+      align-items:stretch;
+      padding:.8rem;
+      border:1px solid var(--line);
+      border-radius:1rem;
+      background:#fff;
+    }
+    .stepno{
+      display:grid;place-items:center;
+      border-radius:.9rem;
+      color:#1e3a8a;background:#dbeafe;font-weight:900;font-size:1.2rem;
+    }
+    .flow-role{font-weight:900}
+    .flow-role .pill{margin-left:0}
+    .method{
+      background:#f8fbff;
+      border:1px solid var(--line);
+      border-radius:.8rem;
+      padding:.55rem;
+      color:#334155;
+      font-size:.9rem;
+    }
+    .examples-toolbar{
+      display:flex; flex-wrap:wrap; gap:.6rem;
+      margin-bottom:1rem;
+      align-items:center;
+    }
+    input[type="search"], select{
+      appearance:none;
+      border:1px solid var(--line);
+      border-radius:.9rem;
+      padding:.72rem .8rem;
+      background:#fff;
+      color:#172033;
+      min-height:42px;
+    }
+    input[type="search"]{min-width:min(480px,100%); flex:1}
+    .example-grid{
+      display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem;
+    }
+    .ex{
+      border:1px solid var(--line);
+      border-radius:1rem;
+      background:#fff;
+      padding:.9rem;
+    }
+    .ex code{display:block; white-space:normal; font-weight:900; color:#1e3a8a}
+    .ex p{margin:.45rem 0 0; color:#475569; font-size:.9rem}
+    .builder{
+      display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.75rem;
+      align-items:end;
+    }
+    .field label{display:block; color:#475569; font-weight:800; font-size:.82rem; margin-bottom:.25rem}
+    .result{
+      margin-top:1rem;
+      display:flex; flex-wrap:wrap; gap:.7rem; align-items:center;
+      padding:1rem;
+      border-radius:1rem;
+      background:#111827;
+      color:#f8fafc;
+    }
+    .result code{background:transparent;color:#f8fafc;padding:0;font-size:1.1rem;white-space:normal}
+    .copy{
+      border:0;
+      border-radius:.75rem;
+      background:#2563eb;
+      color:white;
+      padding:.65rem .8rem;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .decision{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;
+    }
+    .decision .card{box-shadow:none}
+    .footer-note{
+      margin-top:2rem;
+      padding:1.4rem;
+      border-radius:1.3rem;
+      background:#0f172a;
+      color:#cbd5e1;
+    }
+    @media (max-width: 1100px){
+      .app{display:block}
+      .side{position:relative;height:auto}
+      .hero-grid,.grid-2,.grid-3,.grid-4,.mini-screens,.decision,.builder,.example-grid{grid-template-columns:1fr}
+      .flow-step{grid-template-columns:1fr}
+      .component-map{min-height:1100px}
+      .browser{inset:.5rem}
+      .workspace{grid-template-columns:1fr}
+      .sidebar,.detail{display:none}
+      .drawer,.modal,.toast{display:none}
+      .callout{position:relative; left:auto!important; top:auto!important; right:auto!important; bottom:auto!important; margin:.5rem; max-width:none}
+      .callout:before{display:none}
+    }
+    @media print{
+      .side,.examples-toolbar,.builder,.copy{display:none!important}
+      .app{display:block}
+      body{background:#fff}
+      .card,.hero{box-shadow:none}
+      .section{break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div>
+        <strong>Prefix Guide v2</strong>
+        <small>連番_役割_大_中_小</small>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#rule"><span class="dot"></span>基本形</a>
+      <a href="#screen"><span class="dot"></span>画面サンプル</a>
+      <a href="#parts"><span class="dot"></span>画面部品カタログ</a>
+      <a href="#domains"><span class="dot"></span>中項目 = ドメイン</a>
+      <a href="#flow"><span class="dot"></span>入力→SQL→表示フロー</a>
+      <a href="#methods"><span class="dot"></span>メソッドパターン</a>
+      <a href="#builder"><span class="dot"></span>命名ビルダー</a>
+      <a href="#examples"><span class="dot"></span>命名例一覧</a>
+    </nav>
+    <div class="legend">
+      <strong>今回の修正</strong><br/>
+      以前の <code>役割_連番_...</code> ではなく、先頭を必ず連番にします。<br/>
+      <code>320_Ui_table_sales_row.tsx</code> のように読みます。
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="hero">
+      <span class="eyebrow">Webシステム版・命名ルール</span>
+      <h1>連番 → 役割 → 大項目 → 中項目 → 小項目</h1>
+      <p>
+        大項目は「画面・処理の一番大きい部位」、中項目は <strong>業務ドメイン名</strong>、小項目はその中の具体部品・操作です。
+        これにより、カテゴリ分けされた中で「どの業務機能のどの部品なのか」をファイル名だけで判定できます。
+      </p>
+      <div class="hero-grid">
+        <div class="seg"><b>320</b><span>連番 / category number</span></div>
+        <div class="seg"><b>Ui</b><span>役割 / responsibility</span></div>
+        <div class="seg"><b>table</b><span>大項目 / largest part</span></div>
+        <div class="seg"><b>invoice</b><span>中項目 / domain</span></div>
+        <div class="seg"><b>row.tsx</b><span>小項目 / concrete part</span></div>
+      </div>
+    </section>
+
+    <section id="rule" class="section card">
+      <h2>1. 基本形</h2>
+      <div class="rulebar">
+        <span class="token t-num">連番 <small>320</small></span>
+        <span class="arrow">_</span>
+        <span class="token t-role">役割 <small>Ui</small></span>
+        <span class="arrow">_</span>
+        <span class="token t-big">大項目 <small>table</small></span>
+        <span class="arrow">_</span>
+        <span class="token t-mid">中項目 <small>invoice</small></span>
+        <span class="arrow">_</span>
+        <span class="token t-small">小項目 <small>row</small></span>
+        <span class="arrow">.tsx</span>
+      </div>
+      <pre><code>連番_役割_大項目_中項目(domain)_小項目[_対象].ext
+
+例:
+320_Ui_table_invoice_row.tsx
+300_Bind_form_customer_search_input.ts
+410_Val_api_payment_request.ts
+430_Fac_sql_inventory_search_query.ts
+435_Ope_sql_inventory_exec.ts
+440_Dec_result_invoice_rows.ts
+450_Bind_vo_shipment_assign.ts</code></pre>
+      <div class="badgood">
+        <div class="note bad">
+          <strong>NG寄り</strong><br/>
+          <code>Ui_320_table_order_row.tsx</code><br/>
+          役割が先頭に来ている。今回のルールでは連番を先頭に置く。
+        </div>
+        <div class="note good">
+          <strong>OK</strong><br/>
+          <code>320_Ui_table_order_row.tsx</code><br/>
+          連番 → 役割 → 大項目 → 中項目 → 小項目の順。
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top:1rem">
+        <div class="note">
+          <strong>大項目</strong><br/>
+          画面や処理の一番大きい部位。<br/>
+          例: <code>table</code>, <code>detail</code>, <code>form</code>, <code>api</code>, <code>sql</code>, <code>vo</code>
+        </div>
+        <div class="note">
+          <strong>中項目</strong><br/>
+          業務ドメイン名。注文だけに絞らない。<br/>
+          例: <code>customer</code>, <code>invoice</code>, <code>payment</code>, <code>inventory</code>
+        </div>
+        <div class="note">
+          <strong>小項目</strong><br/>
+          具体部品・操作・状態。<br/>
+          例: <code>row</code>, <code>cell</code>, <code>search</code>, <code>assign</code>, <code>exec</code>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen" class="section card">
+      <h2>2. 画面サンプル：ここに対する命名はこれ</h2>
+      <p class="note">
+        中項目は <code>order</code> などのドメイン名ですが、以下の画面では説明のために一部を <code>order</code> としています。
+        実案件では <code>customer</code> / <code>billing</code> / <code>inventory</code> / <code>support</code> などに置き換えます。
+      </p>
+
+      <div class="component-map">
+        <div class="browser">
+          <div class="chrome">
+            <span class="lamp r"></span><span class="lamp y"></span><span class="lamp g"></span>
+            <div class="url">https://admin.example.test/orders</div>
+          </div>
+          <div class="screen">
+            <div class="headbar">
+              <div class="hamb"></div>
+              <div class="head-title">Order Admin</div>
+              <div class="head-actions"><span></span><span></span><span></span></div>
+            </div>
+            <div class="workspace">
+              <div class="sidebar">
+                <div class="side-title">WORKSPACE</div>
+                <div class="side-item active">Orders</div>
+                <div class="side-item">Customers</div>
+                <div class="side-item">Inventory</div>
+                <div class="side-item">Billing</div>
+                <div class="side-item">Support</div>
+                <div class="side-title">SYSTEM</div>
+                <div class="side-item">Settings</div>
+                <div class="side-item">Audit Logs</div>
+              </div>
+              <div class="content">
+                <div class="breadcrumb">Home / Sales / Orders</div>
+                <div class="toolbar">
+                  <div class="inputbox"></div>
+                  <div class="ghost"></div>
+                  <div class="ghost"></div>
+                  <div class="btn"></div>
+                </div>
+                <div class="data-grid">
+                  <div class="data-row header"><div></div><div>Order</div><div>Status</div><div>Payment</div><div>Customer</div><div>Total</div></div>
+                  <div class="data-row"><div class="cell"></div><div class="cell dark"></div><div class="cell ok"></div><div class="cell"></div><div class="cell dark"></div><div class="cell warn"></div></div>
+                  <div class="data-row"><div class="cell"></div><div class="cell dark"></div><div class="cell warn"></div><div class="cell ok"></div><div class="cell"></div><div class="cell"></div></div>
+                  <div class="data-row"><div class="cell"></div><div class="cell dark"></div><div class="cell ok"></div><div class="cell"></div><div class="cell dark"></div><div class="cell warn"></div></div>
+                  <div class="data-row"><div class="cell"></div><div class="cell dark"></div><div class="cell"></div><div class="cell ok"></div><div class="cell"></div><div class="cell"></div></div>
+                  <div class="data-row"><div class="cell"></div><div class="cell dark"></div><div class="cell ok"></div><div class="cell"></div><div class="cell dark"></div><div class="cell warn"></div></div>
+                </div>
+                <div class="pager"><div class="pagebtn"></div><div class="pagebtn"></div><div class="pagebtn"></div></div>
+              </div>
+              <div class="detail">
+                <div class="tabs"><div class="tab"></div><div class="tab"></div><div class="tab"></div></div>
+                <div class="detail-card">
+                  <div class="detail-title"></div>
+                  <div class="detail-line"></div>
+                  <div class="detail-line"></div>
+                  <div class="detail-line" style="width:70%"></div>
+                </div>
+                <div class="detail-card">
+                  <div class="detail-title" style="width:45%"></div>
+                  <div class="timeline">
+                    <div class="tlitem"></div>
+                    <div class="tlitem"></div>
+                    <div class="tlitem"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="footer"><span>Ready</span><span>page=1 / rows=25 / latency=48ms</span></div>
+          </div>
+
+          <div class="drawer">
+            <strong>Edit drawer</strong>
+            <div class="line"></div><div class="line" style="width:65%"></div><div class="line"></div>
+          </div>
+          <div class="modal"><strong>Cancel order?</strong><div class="detail-line"></div><div class="detail-line" style="width:72%"></div></div>
+          <div class="toast">保存しました</div>
+        </div>
+
+        <div class="callout co-green" style="left:52px; top:64px">
+          Headbar / global header
+          <code>110_Ui_headbar_platform_global.tsx</code>
+        </div>
+        <div class="callout" style="left:40px; top:188px">
+          Sidebar menu
+          <code>120_Ui_sidebar_platform_menu.tsx</code>
+        </div>
+        <div class="callout co-purple" style="left:325px; top:148px">
+          Breadcrumb
+          <code>130_Ui_breadcrumb_order_path.tsx</code>
+        </div>
+        <div class="callout co-orange" style="left:330px; top:220px">
+          Filter / search form
+          <code>300_Ui_filter_order_search.tsx</code>
+          <code>300_Bind_filter_order_criteria.ts</code>
+        </div>
+        <div class="callout" style="left:335px; top:340px">
+          Table body / row / cell
+          <code>320_Ui_table_order_row.tsx</code>
+          <code>330_Fmt_table_order_amount.ts</code>
+        </div>
+        <div class="callout co-green" style="left:560px; top:615px">
+          Pagination
+          <code>325_Bind_pager_order_page.ts</code>
+        </div>
+        <div class="callout co-purple" style="right:36px; top:190px">
+          Detail panel
+          <code>340_Ui_detail_order_summary.tsx</code>
+        </div>
+        <div class="callout co-purple" style="right:42px; top:410px">
+          Timeline / activity
+          <code>355_Ui_timeline_order_activity.tsx</code>
+        </div>
+        <div class="callout co-red" style="right:105px; top:560px">
+          Drawer
+          <code>380_Ui_drawer_order_edit.tsx</code>
+        </div>
+        <div class="callout co-red" style="left:470px; top:520px">
+          Modal
+          <code>390_Ui_modal_order_cancel.tsx</code>
+        </div>
+        <div class="callout co-green" style="right:45px; top:86px">
+          Toast
+          <code>395_Ui_toast_order_saved.tsx</code>
+        </div>
+        <div class="callout" style="left:470px; bottom:50px">
+          Footer / status
+          <code>140_Ui_footer_platform_status.tsx</code>
+        </div>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2>3. 画面パターンを増やしたサンプル</h2>
+      <div class="mini-screens">
+        <div class="mini">
+          <h3>詳細・編集画面</h3>
+          <div class="wire">
+            <div class="wire-row short"></div>
+            <div class="wire-card"></div>
+            <div class="wire-row"></div>
+            <div class="wire-row mid"></div>
+            <div class="wire-card"></div>
+            <div class="wire-row short"></div>
+          </div>
+          <p>
+            <code>340_Ui_detail_customer_profile.tsx</code><br/>
+            <code>300_Ui_form_customer_edit.tsx</code><br/>
+            <code>385_Ui_upload_customer_avatar.tsx</code>
+          </p>
+        </div>
+        <div class="mini">
+          <h3>ダッシュボード画面</h3>
+          <div class="wire">
+            <div class="grid-2">
+              <div class="wire-card"></div><div class="wire-card"></div>
+            </div>
+            <div class="wire-card" style="height:94px"></div>
+            <div class="wire-row"></div>
+            <div class="wire-row mid"></div>
+          </div>
+          <p>
+            <code>350_Ui_card_sales_kpi.tsx</code><br/>
+            <code>360_Ui_chart_revenue_trend.tsx</code><br/>
+            <code>370_Ui_feed_support_recent.tsx</code>
+          </p>
+        </div>
+        <div class="mini">
+          <h3>業務オペレーション画面</h3>
+          <div class="wire">
+            <div class="wire-row short"></div>
+            <div class="wire-card" style="height:46px"></div>
+            <div class="wire-card" style="height:46px"></div>
+            <div class="wire-card" style="height:46px"></div>
+            <div class="wire-row"></div>
+          </div>
+          <p>
+            <code>365_Ui_kanban_task_lane.tsx</code><br/>
+            <code>366_Bind_drag_task_card.ts</code><br/>
+            <code>367_Ope_board_task_move.ts</code>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="parts" class="section card">
+      <h2>4. 大項目カタログ：画面・処理の一番大きい部位</h2>
+      <p>大項目はドメイン名ではなく、画面や処理の「部位 / レイヤー / コンテナ」です。</p>
+      <div class="grid-2">
+        <div>
+          <h3>画面フレーム・ナビゲーション</h3>
+          <table>
+            <thead><tr><th>連番帯</th><th>大項目</th><th>用途</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><code>100</code></td><td><code>layout</code></td><td>アプリ全体の枠</td><td><code>100_Ui_layout_platform_shell.tsx</code></td></tr>
+              <tr><td><code>105</code></td><td><code>page</code></td><td>ページ単位</td><td><code>105_Ui_page_invoice_index.tsx</code></td></tr>
+              <tr><td><code>110</code></td><td><code>headbar</code></td><td>ヘッダー</td><td><code>110_Ui_headbar_account_profile.tsx</code></td></tr>
+              <tr><td><code>115</code></td><td><code>navbar</code></td><td>上部ナビ</td><td><code>115_Ui_navbar_platform_main.tsx</code></td></tr>
+              <tr><td><code>120</code></td><td><code>sidebar</code></td><td>左・右サイドバー</td><td><code>120_Ui_sidebar_platform_menu.tsx</code></td></tr>
+              <tr><td><code>125</code></td><td><code>breadcrumb</code></td><td>パンくず</td><td><code>125_Ui_breadcrumb_project_path.tsx</code></td></tr>
+              <tr><td><code>130</code></td><td><code>tabbar</code></td><td>タブ切替</td><td><code>130_Bind_tabbar_customer_active.ts</code></td></tr>
+              <tr><td><code>135</code></td><td><code>toolbar</code></td><td>画面操作バー</td><td><code>135_Ui_toolbar_inventory_action.tsx</code></td></tr>
+              <tr><td><code>140</code></td><td><code>footer</code></td><td>フッター・ステータス</td><td><code>140_Ui_footer_platform_status.tsx</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>入力・検索・状態</h3>
+          <table>
+            <thead><tr><th>連番帯</th><th>大項目</th><th>用途</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><code>300</code></td><td><code>form</code></td><td>入力フォーム</td><td><code>300_Ui_form_customer_edit.tsx</code></td></tr>
+              <tr><td><code>301</code></td><td><code>field</code></td><td>フォーム項目</td><td><code>301_Ui_field_payment_amount.tsx</code></td></tr>
+              <tr><td><code>302</code></td><td><code>input</code></td><td>入力コントロール</td><td><code>302_Bind_input_account_email.ts</code></td></tr>
+              <tr><td><code>305</code></td><td><code>filter</code></td><td>絞り込み条件</td><td><code>305_Bind_filter_invoice_criteria.ts</code></td></tr>
+              <tr><td><code>306</code></td><td><code>search</code></td><td>検索UI</td><td><code>306_Ui_search_product_keyword.tsx</code></td></tr>
+              <tr><td><code>307</code></td><td><code>select</code></td><td>セレクト・候補</td><td><code>307_Ui_select_delivery_status.tsx</code></td></tr>
+              <tr><td><code>308</code></td><td><code>upload</code></td><td>アップロード</td><td><code>308_Ope_upload_contract_file.ts</code></td></tr>
+              <tr><td><code>310</code></td><td><code>wizard</code></td><td>複数ステップ</td><td><code>310_Ui_wizard_onboarding_step.tsx</code></td></tr>
+              <tr><td><code>315</code></td><td><code>actionbar</code></td><td>検索・一括操作</td><td><code>315_Ui_actionbar_ticket_bulk.tsx</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:1rem">
+        <div>
+          <h3>データ表示・一覧</h3>
+          <table>
+            <thead><tr><th>連番帯</th><th>大項目</th><th>用途</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><code>320</code></td><td><code>table</code></td><td>テーブル</td><td><code>320_Ui_table_order_row.tsx</code></td></tr>
+              <tr><td><code>321</code></td><td><code>grid</code></td><td>グリッド</td><td><code>321_Ui_grid_asset_tile.tsx</code></td></tr>
+              <tr><td><code>322</code></td><td><code>list</code></td><td>リスト</td><td><code>322_Ui_list_notification_item.tsx</code></td></tr>
+              <tr><td><code>323</code></td><td><code>tree</code></td><td>ツリー</td><td><code>323_Ui_tree_org_node.tsx</code></td></tr>
+              <tr><td><code>324</code></td><td><code>pager</code></td><td>ページング</td><td><code>324_Bind_pager_invoice_page.ts</code></td></tr>
+              <tr><td><code>330</code></td><td><code>cell</code></td><td>特殊セル</td><td><code>330_Fmt_cell_payment_status.ts</code></td></tr>
+              <tr><td><code>340</code></td><td><code>detail</code></td><td>詳細表示</td><td><code>340_Ui_detail_ticket_summary.tsx</code></td></tr>
+              <tr><td><code>350</code></td><td><code>card</code></td><td>カード</td><td><code>350_Ui_card_product_price.tsx</code></td></tr>
+              <tr><td><code>360</code></td><td><code>chart</code></td><td>グラフ</td><td><code>360_Ui_chart_analytics_trend.tsx</code></td></tr>
+              <tr><td><code>365</code></td><td><code>map</code></td><td>地図</td><td><code>365_Ui_map_delivery_route.tsx</code></td></tr>
+              <tr><td><code>366</code></td><td><code>timeline</code></td><td>履歴・時系列</td><td><code>366_Ui_timeline_audit_event.tsx</code></td></tr>
+              <tr><td><code>367</code></td><td><code>kanban</code></td><td>カンバン</td><td><code>367_Ui_kanban_task_lane.tsx</code></td></tr>
+              <tr><td><code>368</code></td><td><code>calendar</code></td><td>カレンダー</td><td><code>368_Ui_calendar_booking_slot.tsx</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>オーバーレイ・フィードバック・空状態</h3>
+          <table>
+            <thead><tr><th>連番帯</th><th>大項目</th><th>用途</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><code>380</code></td><td><code>drawer</code></td><td>横から出る詳細・編集</td><td><code>380_Ui_drawer_customer_edit.tsx</code></td></tr>
+              <tr><td><code>385</code></td><td><code>modal</code></td><td>確認・入力ダイアログ</td><td><code>385_Ui_modal_invoice_void.tsx</code></td></tr>
+              <tr><td><code>386</code></td><td><code>popover</code></td><td>小さい浮遊パネル</td><td><code>386_Ui_popover_user_menu.tsx</code></td></tr>
+              <tr><td><code>387</code></td><td><code>tooltip</code></td><td>補足説明</td><td><code>387_Ui_tooltip_payment_fee.tsx</code></td></tr>
+              <tr><td><code>390</code></td><td><code>toast</code></td><td>成功・失敗通知</td><td><code>390_Ui_toast_project_saved.tsx</code></td></tr>
+              <tr><td><code>391</code></td><td><code>banner</code></td><td>画面上部通知</td><td><code>391_Ui_banner_subscription_expire.tsx</code></td></tr>
+              <tr><td><code>392</code></td><td><code>alert</code></td><td>警告ブロック</td><td><code>392_Ui_alert_payment_failed.tsx</code></td></tr>
+              <tr><td><code>393</code></td><td><code>empty</code></td><td>空状態</td><td><code>393_Ui_empty_search_no_result.tsx</code></td></tr>
+              <tr><td><code>394</code></td><td><code>loading</code></td><td>読込状態</td><td><code>394_Ui_loading_report_fetch.tsx</code></td></tr>
+              <tr><td><code>395</code></td><td><code>error</code></td><td>エラー状態</td><td><code>395_Ui_error_api_timeout.tsx</code></td></tr>
+              <tr><td><code>396</code></td><td><code>forbidden</code></td><td>権限不足</td><td><code>396_Ui_forbidden_account_role.tsx</code></td></tr>
+              <tr><td><code>397</code></td><td><code>conflict</code></td><td>競合状態</td><td><code>397_Val_conflict_order_version.ts</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:1rem">
+        <div>
+          <h3>アプリケーション内部</h3>
+          <table>
+            <thead><tr><th>連番帯</th><th>大項目</th><th>用途</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><code>400</code></td><td><code>dto</code></td><td>入出力 DTO</td><td><code>400_Dec_dto_customer_request.ts</code></td></tr>
+              <tr><td><code>405</code></td><td><code>vo</code></td><td>Value Object</td><td><code>405_Fac_vo_invoice_from_row.ts</code></td></tr>
+              <tr><td><code>410</code></td><td><code>state</code></td><td>UI / app state</td><td><code>410_Bind_state_inventory_result.ts</code></td></tr>
+              <tr><td><code>415</code></td><td><code>store</code></td><td>store / reducer</td><td><code>415_Ope_store_cart_update.ts</code></td></tr>
+              <tr><td><code>420</code></td><td><code>policy</code></td><td>権限・業務ルール</td><td><code>420_Val_policy_refund_allowed.ts</code></td></tr>
+              <tr><td><code>425</code></td><td><code>event</code></td><td>domain event</td><td><code>425_Fac_event_shipment_dispatched.ts</code></td></tr>
+              <tr><td><code>430</code></td><td><code>usecase</code></td><td>ユースケース</td><td><code>430_Ope_usecase_payment_capture.ts</code></td></tr>
+              <tr><td><code>435</code></td><td><code>cache</code></td><td>キャッシュ</td><td><code>435_Ope_cache_product_invalidate.ts</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>API / SQL / 非同期処理</h3>
+          <table>
+            <thead><tr><th>連番帯</th><th>大項目</th><th>用途</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><code>500</code></td><td><code>api</code></td><td>API route / handler</td><td><code>500_Sys_api_order_route.ts</code></td></tr>
+              <tr><td><code>505</code></td><td><code>request</code></td><td>request 生成・検証</td><td><code>505_Val_request_invoice_search.ts</code></td></tr>
+              <tr><td><code>510</code></td><td><code>response</code></td><td>response 生成</td><td><code>510_Fac_response_customer_list.ts</code></td></tr>
+              <tr><td><code>515</code></td><td><code>sql</code></td><td>SQL 生成・実行</td><td><code>515_Fac_sql_inventory_search_query.ts</code></td></tr>
+              <tr><td><code>520</code></td><td><code>repo</code></td><td>repository</td><td><code>520_Ope_repo_payment_find.ts</code></td></tr>
+              <tr><td><code>525</code></td><td><code>result</code></td><td>SQL/API結果</td><td><code>525_Dec_result_invoice_rows.ts</code></td></tr>
+              <tr><td><code>600</code></td><td><code>job</code></td><td>background job</td><td><code>600_Ope_job_report_export.ts</code></td></tr>
+              <tr><td><code>610</code></td><td><code>queue</code></td><td>queue enqueue/dequeue</td><td><code>610_Fac_queue_notification_message.ts</code></td></tr>
+              <tr><td><code>620</code></td><td><code>webhook</code></td><td>webhook受信</td><td><code>620_Sys_webhook_payment_received.ts</code></td></tr>
+              <tr><td><code>700</code></td><td><code>log</code></td><td>log / audit</td><td><code>700_Log_log_order_search.ts</code></td></tr>
+              <tr><td><code>710</code></td><td><code>trace</code></td><td>trace</td><td><code>710_Fmt_trace_api_latency.ts</code></td></tr>
+              <tr><td><code>720</code></td><td><code>case</code></td><td>test case</td><td><code>720_Val_case_invoice_search.ts</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="domains" class="section card">
+      <h2>5. 中項目は業務ドメイン名。絞りすぎない</h2>
+      <p>
+        中項目は <code>order</code> / <code>delivery</code> に固定しません。
+        そのシステムで「画面・API・SQL・VOをまたいで追いたい業務概念」を入れます。
+      </p>
+      <div class="grid-3">
+        <div class="note">
+          <strong>アカウント・権限系</strong><br/>
+          <span class="pill">auth</span><span class="pill">account</span><span class="pill">user</span><span class="pill">role</span><span class="pill">permission</span><span class="pill">tenant</span><span class="pill">profile</span>
+        </div>
+        <div class="note">
+          <strong>販売・EC系</strong><br/>
+          <span class="pill green">order</span><span class="pill green">cart</span><span class="pill green">product</span><span class="pill green">catalog</span><span class="pill green">inventory</span><span class="pill green">coupon</span><span class="pill green">return</span>
+        </div>
+        <div class="note">
+          <strong>決済・請求系</strong><br/>
+          <span class="pill orange">payment</span><span class="pill orange">invoice</span><span class="pill orange">billing</span><span class="pill orange">subscription</span><span class="pill orange">refund</span><span class="pill orange">contract</span>
+        </div>
+        <div class="note">
+          <strong>物流・業務運用系</strong><br/>
+          <span class="pill purple">shipment</span><span class="pill purple">delivery</span><span class="pill purple">warehouse</span><span class="pill purple">driver</span><span class="pill purple">route</span><span class="pill purple">schedule</span>
+        </div>
+        <div class="note">
+          <strong>社内管理・タスク系</strong><br/>
+          <span class="pill">project</span><span class="pill">task</span><span class="pill">ticket</span><span class="pill">support</span><span class="pill">message</span><span class="pill">notification</span><span class="pill">approval</span>
+        </div>
+        <div class="note">
+          <strong>分析・監査系</strong><br/>
+          <span class="pill green">report</span><span class="pill green">analytics</span><span class="pill green">audit</span><span class="pill green">metric</span><span class="pill green">log</span><span class="pill green">export</span>
+        </div>
+      </div>
+      <div class="note" style="margin-top:1rem">
+        <strong>判断基準:</strong>
+        <code>table</code> や <code>detail</code> は画面部位なので大項目。
+        <code>order</code> や <code>customer</code> は業務ドメインなので中項目。
+        <code>row</code> や <code>summary</code> や <code>search</code> は具体対象なので小項目。
+      </div>
+    </section>
+
+    <section id="flow" class="section card">
+      <h2>6. 入力 → validate → SQL → 結果表示までの一連の流れ</h2>
+      <p>
+        画面からSQL結果が返ってくるまでに呼ばれるファイル・メソッドの典型パターンです。
+        例ではドメインを <code>invoice</code> にしていますが、任意のドメイン名に置き換えます。
+      </p>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="stepno">01</div>
+          <div class="flow-role"><span class="pill">Ui</span><br/>入力欄を表示</div>
+          <div><code>300_Ui_form_invoice_search.tsx</code><br/>検索フォーム・入力欄・ボタンを描画。</div>
+          <div class="method"><code>InvoiceSearchForm()</code><br/><code>onSearchClick()</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">02</div>
+          <div class="flow-role"><span class="pill green">Bind</span><br/>入力値を束ねる</div>
+          <div><code>305_Bind_filter_invoice_criteria.ts</code><br/>画面入力を検索条件オブジェクトへ束ねる。</div>
+          <div class="method"><code>bindInvoiceSearchCriteria(input)</code><br/><code>bindInvoiceDateRange(input)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">03</div>
+          <div class="flow-role"><span class="pill orange">Val</span><br/>入力検証</div>
+          <div><code>306_Val_form_invoice_criteria.ts</code><br/>必須・型・日付範囲・権限を検証。</div>
+          <div class="method"><code>validateInvoiceSearchCriteria(criteria)</code><br/><code>assertInvoiceDateRange(criteria)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">04</div>
+          <div class="flow-role"><span class="pill purple">Dec</span><br/>入力の型変換</div>
+          <div><code>307_Dec_request_invoice_query.ts</code><br/>URL query / form文字列を typed request へ変換。</div>
+          <div class="method"><code>decodeInvoiceSearchQuery(params)</code><br/><code>parseInvoiceStatus(value)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">05</div>
+          <div class="flow-role"><span class="pill">Fac</span><br/>API request生成</div>
+          <div><code>505_Fac_request_invoice_search.ts</code><br/>APIに渡す request DTO を生成。</div>
+          <div class="method"><code>makeInvoiceSearchRequest(criteria)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">06</div>
+          <div class="flow-role"><span class="pill green">Sys</span><br/>API route / controller</div>
+          <div><code>500_Sys_api_invoice_route.ts</code><br/>HTTP route / controller の入口。</div>
+          <div class="method"><code>handleGetInvoiceList(req)</code><br/><code>routeInvoiceSearch(req)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">07</div>
+          <div class="flow-role"><span class="pill orange">Val</span><br/>request再検証</div>
+          <div><code>505_Val_request_invoice_search.ts</code><br/>API境界で不正リクエストを止める。</div>
+          <div class="method"><code>validateInvoiceSearchRequest(req)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">08</div>
+          <div class="flow-role"><span class="pill purple">Fac</span><br/>SQL生成</div>
+          <div><code>515_Fac_sql_invoice_search_query.ts</code><br/>SQL本文とbind変数を生成。文字列結合で責務が溢れないよう分ける。</div>
+          <div class="method"><code>buildInvoiceSearchSql(req)</code><br/><code>makeInvoiceWhereClause(req)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">09</div>
+          <div class="flow-role"><span class="pill">Ope</span><br/>SQL実行</div>
+          <div><code>520_Ope_repo_invoice_find.ts</code><br/>DBアクセスやRepositoryの実行。副作用を持つ。</div>
+          <div class="method"><code>findInvoicesByCriteria(req)</code><br/><code>execInvoiceSearchSql(sql)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">10</div>
+          <div class="flow-role"><span class="pill green">Dec</span><br/>SQL結果decode</div>
+          <div><code>525_Dec_result_invoice_rows.ts</code><br/>DB rowを型付き結果へ変換。</div>
+          <div class="method"><code>decodeInvoiceRows(rows)</code><br/><code>decodeInvoiceRow(row)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">11</div>
+          <div class="flow-role"><span class="pill orange">Fac / Bind</span><br/>VO生成・代入</div>
+          <div><code>405_Fac_vo_invoice_from_row.ts</code><br/><code>406_Bind_vo_invoice_assign.ts</code><br/>SQL結果をValue Objectへ詰める。</div>
+          <div class="method"><code>makeInvoiceVoFromRow(row)</code><br/><code>assignInvoiceVo(result)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">12</div>
+          <div class="flow-role"><span class="pill purple">Val</span><br/>結果invariant</div>
+          <div><code>420_Val_policy_invoice_visible.ts</code><br/>表示してよい結果か、金額・状態の矛盾がないかを確認。</div>
+          <div class="method"><code>validateInvoiceVisible(user, invoice)</code><br/><code>assertInvoiceAmountInvariant(vo)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">13</div>
+          <div class="flow-role"><span class="pill">Bind</span><br/>stateへ反映</div>
+          <div><code>410_Bind_state_invoice_result.ts</code><br/>結果をUI state / store / cacheへ反映。</div>
+          <div class="method"><code>bindInvoiceSearchResult(state, result)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="stepno">14</div>
+          <div class="flow-role"><span class="pill green">Fmt / Ui</span><br/>表示整形・描画</div>
+          <div><code>330_Fmt_cell_invoice_amount.ts</code><br/><code>320_Ui_table_invoice_row.tsx</code><br/>表示文字列に整形し、table/detailへ描画。</div>
+          <div class="method"><code>formatInvoiceAmount(amount)</code><br/><code>InvoiceTableRow()</code></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="methods" class="section card">
+      <h2>7. メソッド命名パターン：ここで使うprefix</h2>
+      <div class="grid-2">
+        <div>
+          <h3>責務別パターン</h3>
+          <table>
+            <thead><tr><th>役割</th><th>使う場面</th><th>メソッド例</th><th>ファイル例</th></tr></thead>
+            <tbody>
+              <tr><td><code>Ui</code></td><td>画面部品の表示・イベント発火</td><td><code>{Domain}TableRow()</code><br/><code>{Domain}DetailPanel()</code></td><td><code>320_Ui_table_{domain}_row.tsx</code></td></tr>
+              <tr><td><code>Bind</code></td><td>入力・結果・VO・stateの束ね</td><td><code>bind{Domain}SearchCriteria()</code><br/><code>assign{Domain}Vo()</code></td><td><code>305_Bind_filter_{domain}_criteria.ts</code></td></tr>
+              <tr><td><code>Val</code></td><td>検証・invariant・権限判定</td><td><code>validate{Domain}Request()</code><br/><code>assert{Domain}Invariant()</code></td><td><code>505_Val_request_{domain}_search.ts</code></td></tr>
+              <tr><td><code>Dec</code></td><td>文字列・JSON・DB rowのdecode</td><td><code>decode{Domain}Rows()</code><br/><code>parse{Domain}Status()</code></td><td><code>525_Dec_result_{domain}_rows.ts</code></td></tr>
+              <tr><td><code>Fac</code></td><td>DTO / SQL / VO / Event の生成</td><td><code>make{Domain}Request()</code><br/><code>build{Domain}SearchSql()</code></td><td><code>515_Fac_sql_{domain}_search_query.ts</code></td></tr>
+              <tr><td><code>Ope</code></td><td>副作用・実行・更新・DBアクセス</td><td><code>exec{Domain}SearchSql()</code><br/><code>update{Domain}Status()</code></td><td><code>520_Ope_repo_{domain}_find.ts</code></td></tr>
+              <tr><td><code>Sys</code></td><td>framework入口・route・controller</td><td><code>handleGet{Domain}List()</code><br/><code>route{Domain}Search()</code></td><td><code>500_Sys_api_{domain}_route.ts</code></td></tr>
+              <tr><td><code>Fmt</code></td><td>表示用文字列・セル値整形</td><td><code>format{Domain}Status()</code><br/><code>format{Domain}Amount()</code></td><td><code>330_Fmt_cell_{domain}_amount.ts</code></td></tr>
+              <tr><td><code>Log</code></td><td>ログ・監査イベント</td><td><code>log{Domain}Search()</code><br/><code>audit{Domain}Change()</code></td><td><code>700_Log_log_{domain}_search.ts</code></td></tr>
+              <tr><td><code>Cal</code></td><td>pureな計算・派生値</td><td><code>calc{Domain}Total()</code><br/><code>calc{Domain}DueDate()</code></td><td><code>340_Cal_detail_{domain}_summary.ts</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>判断ルール</h3>
+          <div class="decision">
+            <div class="card">
+              <h3>画面を作る？</h3>
+              <p><code>Ui</code>。React/Vue/Svelte component、HTML断片、table row、detail card。</p>
+            </div>
+            <div class="card">
+              <h3>値を束ねる？</h3>
+              <p><code>Bind</code>。input → criteria、row → VO、result → state。</p>
+            </div>
+            <div class="card">
+              <h3>正しいか確認？</h3>
+              <p><code>Val</code>。required、range、permission、invariant。</p>
+            </div>
+          </div>
+          <div class="decision" style="margin-top:1rem">
+            <div class="card">
+              <h3>作る？</h3>
+              <p><code>Fac</code>。SQL、DTO、VO、event、response を生成。</p>
+            </div>
+            <div class="card">
+              <h3>実行する？</h3>
+              <p><code>Ope</code>。DB、API、更新、送信など副作用あり。</p>
+            </div>
+            <div class="card">
+              <h3>入口？</h3>
+              <p><code>Sys</code>。route handler、controller、middleware、framework hook。</p>
+            </div>
+          </div>
+          <pre style="margin-top:1rem"><code>// 例: customer 検索
+300_Ui_form_customer_search.tsx
+305_Bind_filter_customer_criteria.ts
+306_Val_form_customer_criteria.ts
+505_Fac_request_customer_search.ts
+500_Sys_api_customer_route.ts
+515_Fac_sql_customer_search_query.ts
+520_Ope_repo_customer_find.ts
+525_Dec_result_customer_rows.ts
+405_Fac_vo_customer_from_row.ts
+410_Bind_state_customer_result.ts
+320_Ui_table_customer_row.tsx</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="builder" class="section card">
+      <h2>8. 命名ビルダー</h2>
+      <p>選択すると、今回の順番 <code>連番_役割_大項目_中項目_小項目</code> で名前を生成します。</p>
+      <div class="builder">
+        <div class="field">
+          <label>連番</label>
+          <select id="bNum">
+            <option>320</option><option>300</option><option>340</option><option>380</option><option>405</option><option>410</option><option>500</option><option>515</option><option>520</option><option>525</option><option>700</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>役割</label>
+          <select id="bRole">
+            <option>Ui</option><option>Bind</option><option>Val</option><option>Dec</option><option>Fac</option><option>Ope</option><option>Sys</option><option>Fmt</option><option>Log</option><option>Cal</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>大項目</label>
+          <select id="bBig">
+            <option>table</option><option>form</option><option>filter</option><option>detail</option><option>drawer</option><option>modal</option><option>chart</option><option>api</option><option>sql</option><option>repo</option><option>result</option><option>vo</option><option>state</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>中項目 = domain</label>
+          <select id="bMid">
+            <option>invoice</option><option>customer</option><option>order</option><option>delivery</option><option>payment</option><option>inventory</option><option>product</option><option>ticket</option><option>account</option><option>analytics</option><option>support</option><option>shipment</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>小項目</label>
+          <select id="bSmall">
+            <option>row</option><option>search</option><option>criteria</option><option>summary</option><option>edit</option><option>assign</option><option>query</option><option>exec</option><option>rows</option><option>amount</option><option>status</option><option>route</option>
+          </select>
+        </div>
+      </div>
+      <div class="result">
+        <code id="built">320_Ui_table_invoice_row.tsx</code>
+        <button class="copy" onclick="copyBuilt()">コピー</button>
+        <span id="copyMsg" style="color:#bfdbfe"></span>
+      </div>
+    </section>
+
+    <section id="examples" class="section card">
+      <h2>9. 命名例一覧</h2>
+      <div class="examples-toolbar">
+        <input id="search" type="search" placeholder="例: sql / customer / table / payment / validate / drawer / vo で検索" />
+        <select id="category">
+          <option value="">すべて</option>
+          <option value="screen">画面</option>
+          <option value="input">入力</option>
+          <option value="display">表示</option>
+          <option value="flow">処理フロー</option>
+          <option value="server">API / SQL</option>
+          <option value="vo">VO / state</option>
+          <option value="obs">log / test</option>
+        </select>
+      </div>
+      <div id="examplesGrid" class="example-grid"></div>
+    </section>
+
+    <section class="footer-note">
+      <h2>運用メモ</h2>
+      <p>
+        このHTMLでは、元ルールの「役割で責務を分け、大・中・小でどの画面・部品・操作かを読む」という考え方を、
+        Webシステム向けに <code>連番_役割_大項目_中項目_小項目</code> へ並び替えています。
+        中項目は業務ドメイン名なので、プロジェクトごとにドメイン辞書を先に決めると命名が安定します。
+      </p>
+    </section>
+  </main>
+</div>
+
+<script>
+const examples = [
+  ["screen","100_Ui_layout_platform_shell.tsx","アプリ全体のshell layout。domainは共通基盤なので platform。"],
+  ["screen","105_Ui_page_invoice_index.tsx","請求一覧ページ。page = 大項目、invoice = domain。"],
+  ["screen","110_Ui_headbar_account_profile.tsx","ヘッダー右上のアカウント表示。"],
+  ["screen","120_Ui_sidebar_platform_menu.tsx","グローバルサイドバー。"],
+  ["screen","125_Ui_breadcrumb_project_path.tsx","プロジェクト詳細のパンくず。"],
+  ["screen","130_Bind_tabbar_customer_active.ts","顧客詳細タブのactive状態を束ねる。"],
+  ["screen","135_Ui_toolbar_inventory_action.tsx","在庫画面の操作バー。"],
+  ["screen","140_Ui_footer_platform_status.tsx","フッター・ステータス表示。"],
+
+  ["input","300_Ui_form_customer_edit.tsx","顧客編集フォーム。"],
+  ["input","301_Ui_field_payment_amount.tsx","決済金額の入力field。"],
+  ["input","302_Bind_input_account_email.ts","email入力をstate/criteriaへbind。"],
+  ["input","305_Bind_filter_invoice_criteria.ts","請求検索フィルタを検索条件へ束ねる。"],
+  ["input","306_Val_form_invoice_criteria.ts","請求検索フォームのvalidation。"],
+  ["input","307_Dec_request_invoice_query.ts","URL queryをtyped requestへdecode。"],
+  ["input","308_Ope_upload_contract_file.ts","契約ファイルのupload実行。"],
+  ["input","310_Ui_wizard_onboarding_step.tsx","オンボーディングウィザードのstep UI。"],
+
+  ["display","320_Ui_table_order_row.tsx","注文テーブルのrow。"],
+  ["display","320_Ui_table_customer_header.tsx","顧客テーブルのheader。"],
+  ["display","330_Fmt_cell_payment_status.ts","支払いstatusを表示用にformat。"],
+  ["display","340_Ui_detail_ticket_summary.tsx","チケット詳細summary。"],
+  ["display","350_Ui_card_product_price.tsx","商品価格カード。"],
+  ["display","360_Ui_chart_analytics_trend.tsx","分析トレンドチャート。"],
+  ["display","365_Ui_map_delivery_route.tsx","配達ルートmap。"],
+  ["display","366_Ui_timeline_audit_event.tsx","監査イベントtimeline。"],
+  ["display","367_Ui_kanban_task_lane.tsx","タスクkanban lane。"],
+  ["display","368_Ui_calendar_booking_slot.tsx","予約カレンダーslot。"],
+
+  ["screen","380_Ui_drawer_customer_edit.tsx","顧客編集drawer。"],
+  ["screen","385_Ui_modal_invoice_void.tsx","請求取消modal。"],
+  ["screen","386_Ui_popover_user_menu.tsx","ユーザーメニューpopover。"],
+  ["screen","387_Ui_tooltip_payment_fee.tsx","決済手数料tooltip。"],
+  ["screen","390_Ui_toast_project_saved.tsx","保存成功toast。"],
+  ["screen","391_Ui_banner_subscription_expire.tsx","サブスク期限banner。"],
+  ["screen","392_Ui_alert_payment_failed.tsx","決済失敗alert。"],
+  ["screen","393_Ui_empty_search_no_result.tsx","検索結果なしempty state。"],
+  ["screen","394_Ui_loading_report_fetch.tsx","レポート取得loading。"],
+  ["screen","395_Ui_error_api_timeout.tsx","API timeout error state。"],
+
+  ["vo","400_Dec_dto_customer_request.ts","顧客request DTOをdecode。"],
+  ["vo","405_Fac_vo_invoice_from_row.ts","DB rowからInvoice VOを生成。"],
+  ["vo","406_Bind_vo_invoice_assign.ts","SQL結果をInvoice VOへ代入・束ねる。"],
+  ["vo","410_Bind_state_inventory_result.ts","在庫検索結果をstateへ反映。"],
+  ["vo","415_Ope_store_cart_update.ts","cart storeを更新。"],
+  ["vo","420_Val_policy_refund_allowed.ts","返金可能かの業務policy検証。"],
+  ["vo","425_Fac_event_shipment_dispatched.ts","発送完了domain event生成。"],
+  ["flow","430_Ope_usecase_payment_capture.ts","決済確定usecase。"],
+
+  ["server","500_Sys_api_order_route.ts","注文API route handler。"],
+  ["server","505_Val_request_invoice_search.ts","請求検索requestのvalidation。"],
+  ["server","510_Fac_response_customer_list.ts","顧客一覧response生成。"],
+  ["server","515_Fac_sql_inventory_search_query.ts","在庫検索SQLを生成。"],
+  ["server","516_Val_sql_inventory_params.ts","SQL bind paramsを検証。"],
+  ["server","520_Ope_repo_payment_find.ts","Payment repositoryでDB検索を実行。"],
+  ["server","525_Dec_result_invoice_rows.ts","SQL結果rowsをdecode。"],
+  ["server","526_Fmt_result_invoice_error.ts","SQL/API結果エラーを表示用にformat。"],
+
+  ["flow","600_Ope_job_report_export.ts","レポートexport job実行。"],
+  ["flow","610_Fac_queue_notification_message.ts","通知queue message生成。"],
+  ["flow","620_Sys_webhook_payment_received.ts","決済webhookの入口。"],
+  ["obs","700_Log_log_order_search.ts","注文検索ログ。"],
+  ["obs","710_Fmt_trace_api_latency.ts","API latency traceの表示整形。"],
+  ["obs","720_Val_case_invoice_search.ts","請求検索test caseの検証。"],
+  ["obs","730_Dec_mock_customer_rows.ts","mockの顧客rowsをdecode。"]
+];
+
+function renderExamples(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const cat = document.getElementById("category").value;
+  const grid = document.getElementById("examplesGrid");
+  const filtered = examples.filter(([c, name, desc]) => {
+    const hay = (c+" "+name+" "+desc).toLowerCase();
+    return (!cat || c === cat) && (!q || hay.includes(q));
+  });
+  grid.innerHTML = filtered.map(([c,name,desc]) => `
+    <div class="ex" data-cat="${c}">
+      <code>${name}</code>
+      <p><span class="pill">${c}</span> ${desc}</p>
+    </div>
+  `).join("") || `<div class="note">該当する命名例がありません。</div>`;
+}
+document.getElementById("search").addEventListener("input", renderExamples);
+document.getElementById("category").addEventListener("change", renderExamples);
+renderExamples();
+
+const extMap = {
+  Ui: "tsx",
+  Bind: "ts",
+  Val: "ts",
+  Dec: "ts",
+  Fac: "ts",
+  Ope: "ts",
+  Sys: "ts",
+  Fmt: "ts",
+  Log: "ts",
+  Cal: "ts"
+};
+function buildName(){
+  const num = document.getElementById("bNum").value;
+  const role = document.getElementById("bRole").value;
+  const big = document.getElementById("bBig").value;
+  const mid = document.getElementById("bMid").value;
+  const small = document.getElementById("bSmall").value;
+  const ext = extMap[role] || "ts";
+  document.getElementById("built").textContent = `${num}_${role}_${big}_${mid}_${small}.${ext}`;
+}
+["bNum","bRole","bBig","bMid","bSmall"].forEach(id => document.getElementById(id).addEventListener("change", buildName));
+buildName();
+
+async function copyBuilt(){
+  const text = document.getElementById("built").textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    document.getElementById("copyMsg").textContent = "コピーしました";
+    setTimeout(()=>document.getElementById("copyMsg").textContent="",1400);
+  }catch(e){
+    document.getElementById("copyMsg").textContent = text;
+  }
+}
+</script>
+</body>
+</html>
