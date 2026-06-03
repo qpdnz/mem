@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Webシステム prefix 命名ルールガイド</title>
+  <style>
+    :root{
+      --bg:#f6f8fc;
+      --panel:#ffffff;
+      --panel2:#f8fbff;
+      --line:#dbe5f4;
+      --text:#172033;
+      --muted:#64748b;
+      --blue:#2563eb;
+      --green:#16a34a;
+      --orange:#f97316;
+      --pink:#db2777;
+      --purple:#7c3aed;
+      --cyan:#0891b2;
+      --red:#dc2626;
+      --dark:#0f172a;
+      --shadow:0 18px 40px rgba(15,23,42,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#f8fbff 0%,var(--bg) 52%,#eef4ff 100%);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Hiragino Sans",Meiryo,sans-serif;
+      line-height:1.7;
+    }
+    a{color:inherit;text-decoration:none}
+    code,kbd{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+    .browser{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:286px 1fr;
+    }
+    .topbar{
+      position:fixed;
+      inset:0 0 auto 0;
+      height:72px;
+      background:rgba(255,255,255,.88);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--line);
+      z-index:50;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:0 22px;
+    }
+    .traffic{display:flex;gap:8px;margin-right:8px}
+    .dot{width:14px;height:14px;border-radius:50%}
+    .dot.red{background:#ef4444}.dot.yellow{background:#f59e0b}.dot.green{background:#22c55e}
+    .address{
+      flex:1;
+      height:42px;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      border-radius:999px;
+      display:flex;align-items:center;
+      padding:0 18px;
+      color:var(--muted);
+      font-size:14px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .address strong{color:var(--blue);margin-right:10px}
+    .avatar{width:38px;height:38px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:800}
+    aside{
+      position:fixed;
+      top:72px;bottom:0;left:0;
+      width:286px;
+      overflow:auto;
+      background:rgba(255,255,255,.82);
+      backdrop-filter:blur(14px);
+      border-right:1px solid var(--line);
+      padding:28px 22px;
+    }
+    .brand{display:flex;gap:12px;align-items:center;margin-bottom:22px}
+    .brand-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#60a5fa);display:grid;place-items:center;color:#fff;font-weight:900;font-size:22px;box-shadow:var(--shadow)}
+    .brand-title{font-size:18px;font-weight:900;color:#0f2b63;line-height:1.25}
+    .brand-sub{font-size:12px;color:var(--muted)}
+    .search{height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--muted);font-size:13px;margin-bottom:24px}
+    .navgroup{margin:24px 0 10px;color:var(--blue);font-weight:900;font-size:13px}
+    .navlink{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      color:#334155;
+      font-size:14px;
+      margin:4px 0;
+    }
+    .navlink:hover,.navlink.active{background:#eaf2ff;color:var(--blue);font-weight:800}
+    .side-note{margin-top:28px;padding:18px;border:1px solid #bfdbfe;border-radius:16px;background:#eff6ff;color:#1e3a8a;font-size:14px}
+    main{
+      grid-column:2;
+      padding:112px 38px 60px;
+      max-width:1500px;
+      width:100%;
+    }
+    .hero{
+      border:1px solid var(--line);
+      background:linear-gradient(135deg,#ffffff 0%,#f8fbff 55%,#eef6ff 100%);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:30px;
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:22px;
+      align-items:center;
+    }
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--blue);background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:800;margin-bottom:12px}
+    h1{font-size:42px;line-height:1.15;margin:0 0 10px;color:#0f2b63;letter-spacing:-.03em}
+    .lead{font-size:17px;color:var(--muted);max-width:820px;margin:0}
+    .code-hero{
+      background:#0b1220;
+      border:1px solid #1e293b;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 18px 50px rgba(15,23,42,.22);
+      color:#fff;
+      overflow:hidden;
+    }
+    .code-title{color:#cbd5e1;font-size:13px;margin-bottom:12px;font-weight:800}
+    .code-line{font-size:28px;white-space:nowrap;letter-spacing:-.03em}
+    .seg-role{color:#93c5fd}.seg-num{color:#86efac}.seg-big{color:#4ade80}.seg-mid{color:#fdba74}.seg-small{color:#f9a8d4}.seg-target{color:#c4b5fd}.seg-ext{color:#e5e7eb}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:800;color:#334155}
+    .chip-dot{width:10px;height:10px;border-radius:50%}
+    section{margin-top:22px}
+    .section-title{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:34px 0 14px}
+    h2{font-size:28px;color:#0f2b63;margin:0;letter-spacing:-.02em}
+    .section-desc{color:var(--muted);font-size:14px;margin:2px 0 0}
+    .grid{display:grid;gap:16px}
+    .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;overflow:hidden}
+    .card.soft{background:linear-gradient(180deg,#fff,#f8fbff)}
+    .card h3{margin:0 0 12px;font-size:19px;color:#0f2b63}
+    .mini-title{font-size:13px;color:var(--muted);font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+    .rule-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+    .rule-list li{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border-radius:12px;background:#f8fbff;border:1px solid #e4edf9}
+    .check{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;flex:0 0 auto;font-weight:900;font-size:14px}
+    .big-code{font-size:24px;background:#0b1220;color:#fff;border-radius:14px;padding:18px 20px;overflow:auto;white-space:nowrap}
+    .decompose{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+    .part{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center}
+    .pill{display:inline-flex;align-items:center;justify-content:center;min-width:118px;border-radius:10px;border:1px solid #bfdbfe;background:#eff6ff;padding:6px 10px;font-weight:900;color:var(--blue);font-family:"SFMono-Regular",Consolas,monospace}
+    .pill.green{color:#15803d;background:#ecfdf5;border-color:#bbf7d0}.pill.orange{color:#c2410c;background:#fff7ed;border-color:#fed7aa}.pill.pink{color:#be185d;background:#fdf2f8;border-color:#fbcfe8}.pill.purple{color:#6d28d9;background:#f5f3ff;border-color:#ddd6fe}.pill.dark{color:#0f172a;background:#f8fafc;border-color:#cbd5e1}
+    .part span:last-child{color:#475569;font-size:14px}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:14px}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{background:#eaf2ff;color:#0f2b63;font-size:13px;text-align:left;white-space:nowrap}
+    tr:last-child td{border-bottom:0}
+    td:first-child{font-weight:900;color:var(--blue);font-family:"SFMono-Regular",Consolas,monospace;white-space:nowrap}
+    .table-wrap{overflow:auto;border-radius:14px}
+    .screen-card{padding:0;background:#111827;border-color:#0f172a;color:#e5e7eb}
+    .mock-window-bar{height:42px;background:#0f172a;border-bottom:1px solid #1f2937;display:flex;align-items:center;gap:8px;padding:0 14px}
+    .mock-dot{width:12px;height:12px;border-radius:50%;background:#ef4444}.mock-dot:nth-child(2){background:#f59e0b}.mock-dot:nth-child(3){background:#22c55e}
+    .mock-title{margin-left:10px;color:#cbd5e1;font-size:13px;font-weight:800}
+    .mock-screen{position:relative;height:540px;background:#eef2f7;padding:16px;color:#111827}
+    .webapp{position:absolute;inset:16px;background:#fff;border-radius:14px;box-shadow:0 16px 36px rgba(15,23,42,.2);overflow:hidden;border:1px solid #cbd5e1}
+    .app-header{height:62px;background:#fff;border-bottom:1px solid #dbe5f4;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+    .logo{font-weight:900;color:var(--blue)}
+    .header-actions{display:flex;gap:8px}.header-actions span{width:32px;height:32px;border-radius:10px;background:#eaf2ff;border:1px solid #bfdbfe}
+    .app-body{display:grid;grid-template-columns:210px 1fr;height:calc(100% - 62px)}
+    .app-sidebar{background:#f8fbff;border-right:1px solid #dbe5f4;padding:16px}.nav-item{height:34px;border-radius:9px;background:#fff;border:1px solid #e4edf9;margin-bottom:9px}.nav-item.active{background:#eaf2ff;border-color:#bfdbfe}
+    .app-main{padding:18px;background:#f8fafc;overflow:hidden}.page-title{height:40px;width:300px;border-radius:12px;background:#eaf2ff;border:1px solid #bfdbfe;margin-bottom:14px}.toolbar-row{display:flex;gap:10px;margin-bottom:14px}.toolbar-row div{height:38px;border-radius:10px;background:#fff;border:1px solid #dbe5f4}.toolbar-row div:nth-child(1){width:220px}.toolbar-row div:nth-child(2){width:110px}.toolbar-row div:nth-child(3){width:130px}
+    .content-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.table-box,.form-box{height:260px;background:#fff;border:1px solid #dbe5f4;border-radius:14px;padding:14px}.row{height:30px;background:#f8fbff;border:1px solid #e4edf9;border-radius:8px;margin-bottom:9px}.field{height:34px;background:#f8fbff;border:1px solid #e4edf9;border-radius:8px;margin-bottom:10px}.button{height:38px;background:#2563eb;border-radius:10px;margin-top:10px}
+    .toast{position:absolute;right:26px;bottom:26px;width:230px;height:60px;border-radius:14px;background:#ecfdf5;border:2px solid #22c55e}
+    .modal{position:absolute;right:60px;top:170px;width:250px;height:150px;background:#fff;border:2px solid #a855f7;border-radius:16px;box-shadow:0 18px 40px rgba(15,23,42,.2)}
+    .callout{position:absolute;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;color:#0f172a}
+    .callout .label{background:#fff;border:2px solid var(--blue);border-radius:999px;padding:6px 10px;color:var(--blue);white-space:nowrap}.callout.green .label{border-color:var(--green);color:var(--green)}.callout.orange .label{border-color:var(--orange);color:var(--orange)}.callout.purple .label{border-color:var(--purple);color:var(--purple)}.callout.pink .label{border-color:var(--pink);color:var(--pink)}
+    .line{width:52px;height:2px;background:var(--blue)}.callout.green .line{background:var(--green)}.callout.orange .line{background:var(--orange)}.callout.purple .line{background:var(--purple)}.callout.pink .line{background:var(--pink)}
+    .domain-cloud{display:flex;gap:8px;flex-wrap:wrap}.tag{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:800;color:#334155}.tag.hot{background:#fff7ed;border-color:#fed7aa;color:#c2410c}.tag.vo{background:#ecfdf5;border-color:#bbf7d0;color:#15803d}.tag.man{background:#f5f3ff;border-color:#ddd6fe;color:#6d28d9}
+    .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;position:relative}.step:not(:last-child)::after{content:"→";position:absolute;right:-16px;top:50%;transform:translateY(-50%);color:var(--blue);font-size:22px;font-weight:900}.step-num{width:28px;height:28px;border-radius:50%;background:#eaf2ff;color:var(--blue);display:grid;place-items:center;font-weight:900;margin-bottom:8px}.step h3{font-size:16px;margin:0 0 6px}.step p{font-size:13px;margin:0;color:var(--muted)}
+    .builder{display:grid;grid-template-columns:1fr 1fr;gap:18px}.controls{display:grid;gap:12px}.control label{display:block;font-size:13px;font-weight:900;color:#334155;margin-bottom:6px}.control select,.control input{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;color:var(--text);font-size:14px}.output{background:#0b1220;color:#fff;border-radius:18px;padding:20px}.output-code{font-size:24px;white-space:normal;word-break:break-all;margin-bottom:14px}.output small{color:#cbd5e1}.explain{display:grid;gap:8px;margin-top:14px}.explain div{padding:8px 10px;background:#111827;border:1px solid #1e293b;border-radius:10px;color:#cbd5e1;font-size:13px}
+    .bad-good{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bad,.good{border-radius:16px;padding:16px;border:1px solid var(--line)}.bad{background:#fef2f2;border-color:#fecaca}.good{background:#ecfdf5;border-color:#bbf7d0}.bad h3{color:#b91c1c}.good h3{color:#15803d}.mono-list{display:grid;gap:8px}.mono-list code{display:block;background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:10px;padding:8px 10px;color:#0f172a}
+    .notice{border-left:5px solid var(--blue);background:#eff6ff;border-radius:14px;padding:16px;color:#1e3a8a}
+    footer{margin-top:42px;color:var(--muted);font-size:13px;text-align:center}
+    .kbd{display:inline-flex;border:1px solid #cbd5e1;border-bottom-width:3px;border-radius:8px;padding:1px 7px;background:#fff;font-size:12px;color:#334155;font-weight:800}
+    @media (max-width:1100px){.browser{display:block}aside{display:none}main{padding:92px 18px 40px}.hero,.grid.two,.grid.three,.grid.four,.builder,.bad-good{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.step::after{display:none}.code-line{font-size:20px}.mock-screen{height:520px}.content-grid{grid-template-columns:1fr}.modal{display:none}.browser{grid-template-columns:1fr}.topbar{height:64px}.address{font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="topbar" aria-label="browser chrome">
+    <div class="traffic"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+    <div class="address"><strong>🔒</strong> docs.example.dev/naming/web-system-prefix-rule</div>
+    <div class="avatar">W</div>
+  </div>
+
+  <div class="browser">
+    <aside>
+      <div class="brand">
+        <div class="brand-icon">▣</div>
+        <div><div class="brand-title">Webシステム<br>命名ルール</div><div class="brand-sub">prefix / segment guide</div></div>
+      </div>
+      <div class="search">⌕ 検索… <span style="margin-left:auto">⌘K</span></div>
+      <div class="navgroup">はじめに</div>
+      <a class="navlink active" href="#rule">🏠 基本ルール</a>
+      <a class="navlink" href="#screen">🖥 画面イメージ</a>
+      <a class="navlink" href="#large">🔢 連番付き大項目</a>
+      <a class="navlink" href="#middle">🧩 中項目：ドメイン機能名</a>
+      <a class="navlink" href="#role">🏷 役割prefix</a>
+      <a class="navlink" href="#builder">🛠 命名ビルダー</a>
+      <a class="navlink" href="#examples">📚 命名例</a>
+      <a class="navlink" href="#operation">✅ 運用ルール</a>
+      <div class="side-note"><strong>設計意図</strong><br>連番 + 大項目 + 中項目で、カテゴリ分けされた中から「どの機能か」を即座に判定できるようにする。</div>
+    </aside>
+
+    <main>
+      <header class="hero" id="top">
+        <div>
+          <div class="eyebrow">Webシステム版 / 連番付き大項目ルール</div>
+          <h1>Webシステム prefix 命名ルールガイド</h1>
+          <p class="lead">大項目の前に連番を置き、大項目は「画面・システムの一番大きい部位名」、中項目は <strong>auth / user / value_object / manipulator</strong> のようなドメイン機能名にします。これにより、カテゴリ分けされた中で「どの機能のファイルか」を判定しやすくします。</p>
+          <div class="legend">
+            <span class="chip"><span class="chip-dot" style="background:var(--blue)"></span>役割prefix</span>
+            <span class="chip"><span class="chip-dot" style="background:var(--green)"></span>連番 + 大項目</span>
+            <span class="chip"><span class="chip-dot" style="background:var(--orange)"></span>中項目 = ドメイン機能名</span>
+            <span class="chip"><span class="chip-dot" style="background:var(--pink)"></span>小項目 = 具体対象・操作</span>
+          </div>
+        </div>
+        <div class="code-hero" aria-label="filename shape">
+          <div class="code-title">重要ルール：ファイル名の形</div>
+          <div class="code-line"><span class="seg-role">Ui_</span><span class="seg-num">210</span><span class="seg-big">_page_</span><span class="seg-mid">auth_</span><span class="seg-small">login_form</span><span class="seg-ext">.tsx</span></div>
+          <div class="code-line" style="font-size:20px;margin-top:16px"><span class="seg-role">Ope_</span><span class="seg-num">240</span><span class="seg-big">_table_</span><span class="seg-mid">manipulator_</span><span class="seg-small">row_drag</span><span class="seg-ext">.ts</span></div>
+          <div class="code-line" style="font-size:20px;margin-top:10px"><span class="seg-role">Bind_</span><span class="seg-num">230</span><span class="seg-big">_form_</span><span class="seg-mid">value_object_</span><span class="seg-small">money_field</span><span class="seg-ext">.ts</span></div>
+        </div>
+      </header>
+
+      <section id="rule">
+        <div class="section-title"><div><h2>1. 基本ルール</h2><p class="section-desc">役割で責務を読み、連番付き大項目でカテゴリを読み、中項目でドメイン機能を読む。</p></div></div>
+        <div class="grid two">
+          <div class="card soft">
+            <h3>命名フォーマット</h3>
+            <div class="big-code"><span class="seg-role">役割prefix_</span><span class="seg-num">連番</span><span class="seg-big">_大項目_</span><span class="seg-mid">中項目_</span><span class="seg-small">小項目</span><span class="seg-target">[_対象]</span><span class="seg-ext">.ext</span></div>
+            <div class="decompose">
+              <div class="part"><span class="pill">役割prefix</span><span>そのファイルが何をするか。例: <code>Ui_</code>, <code>Api_</code>, <code>Val_</code>, <code>Ope_</code></span></div>
+              <div class="part"><span class="pill green">210_page</span><span>連番 + 大項目。大項目は一番大きい部位名。例: <code>page</code>, <code>form</code>, <code>table</code>, <code>endpoint</code></span></div>
+              <div class="part"><span class="pill orange">auth</span><span>中項目。カテゴリ内のドメイン機能名。例: <code>auth</code>, <code>user</code>, <code>value_object</code>, <code>manipulator</code></span></div>
+              <div class="part"><span class="pill pink">login_form</span><span>小項目。具体対象・UI部品・操作。例: <code>field</code>, <code>row_drag</code>, <code>submit</code>, <code>detail</code></span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>この形にする理由</h3>
+            <ul class="rule-list">
+              <li><span class="check">1</span><div><strong>連番でカテゴリを固定する</strong><br><span class="muted">フォルダや一覧で並んだ時に、同じ部位のファイルを集めやすい。</span></div></li>
+              <li><span class="check">2</span><div><strong>大項目は最大の部位名にする</strong><br><span class="muted"><code>user</code> ではなく <code>page</code> / <code>form</code> / <code>table</code> のように、画面上の大きな場所を置く。</span></div></li>
+              <li><span class="check">3</span><div><strong>中項目にドメイン機能名を置く</strong><br><span class="muted"><code>value_object</code> や <code>manipulator</code> のように、そのカテゴリ内で何の機能かを示す。</span></div></li>
+              <li><span class="check">4</span><div><strong>小項目で具体対象・操作を絞る</strong><br><span class="muted"><code>row</code>, <code>field</code>, <code>drag</code>, <code>preview</code> など、実装箇所を一段詳しくする。</span></div></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen">
+        <div class="section-title"><div><h2>2. Web画面イメージで見る</h2><p class="section-desc">大項目は「どの大きい部位か」、中項目は「その中の何のドメイン機能か」。</p></div></div>
+        <div class="grid two">
+          <div class="card screen-card">
+            <div class="mock-window-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-title">Admin Web System / Screen Map</span></div>
+            <div class="mock-screen">
+              <div class="webapp">
+                <div class="app-header"><div class="logo">Example Admin</div><div class="header-actions"><span></span><span></span><span></span></div></div>
+                <div class="app-body">
+                  <div class="app-sidebar"><div class="nav-item active"></div><div class="nav-item"></div><div class="nav-item"></div><div class="nav-item"></div><div class="nav-item"></div></div>
+                  <div class="app-main"><div class="page-title"></div><div class="toolbar-row"><div></div><div></div><div></div></div><div class="content-grid"><div class="table-box"><div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div></div><div class="form-box"><div class="field"></div><div class="field"></div><div class="field"></div><div class="button"></div></div></div></div>
+                </div>
+                <div class="modal"></div><div class="toast"></div>
+              </div>
+              <div class="callout green" style="left:72px;top:70px"><span class="label">110_header</span><span class="line"></span></div>
+              <div class="callout" style="left:40px;top:164px"><span class="label">120_sidebar</span><span class="line"></span></div>
+              <div class="callout orange" style="left:390px;top:118px"><span class="line"></span><span class="label">210_page</span></div>
+              <div class="callout pink" style="left:690px;top:288px"><span class="line"></span><span class="label">230_form</span></div>
+              <div class="callout purple" style="left:385px;top:292px"><span class="label">240_table</span><span class="line"></span></div>
+              <div class="callout purple" style="left:720px;top:178px"><span class="line"></span><span class="label">260_modal</span></div>
+              <div class="callout green" style="left:640px;top:442px"><span class="line"></span><span class="label">280_toast</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>画面部位 → 命名への対応</h3>
+            <table>
+              <thead><tr><th>画面上の場所</th><th>大項目</th><th>中項目の例</th><th>命名例</th></tr></thead>
+              <tbody>
+                <tr><td>ログイン画面</td><td><code>210_page</code></td><td><code>auth</code></td><td><code>Page_210_page_auth_login.tsx</code></td></tr>
+                <tr><td>ユーザー編集フォーム</td><td><code>230_form</code></td><td><code>user</code></td><td><code>Ui_230_form_user_profile_field.tsx</code></td></tr>
+                <tr><td>値オブジェクト入力</td><td><code>230_form</code></td><td><code>value_object</code></td><td><code>Bind_230_form_value_object_money_field.ts</code></td></tr>
+                <tr><td>行をドラッグ操作する表</td><td><code>240_table</code></td><td><code>manipulator</code></td><td><code>Ope_240_table_manipulator_row_drag.ts</code></td></tr>
+                <tr><td>注文作成 API</td><td><code>500_endpoint</code></td><td><code>order</code></td><td><code>Api_500_endpoint_order_create.ts</code></td></tr>
+              </tbody>
+            </table>
+            <div class="notice" style="margin-top:16px"><strong>ポイント:</strong> <code>user</code> や <code>order</code> を大項目にしない。Web画面・Webシステムの大きい部位を先に置くことで、同じカテゴリ内で機能差分を比較しやすくする。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="large">
+        <div class="section-title"><div><h2>3. 連番付き大項目</h2><p class="section-desc">大項目は「一番大きいその部位の名前」。連番は大項目の前に置く。</p></div></div>
+        <div class="grid three">
+          <div class="card"><h3>画面の外枠・共通部品</h3><div class="table-wrap"><table><thead><tr><th>連番_大項目</th><th>意味</th></tr></thead><tbody>
+            <tr><td>000_common</td><td>複数カテゴリで使う共通要素</td></tr>
+            <tr><td>100_app</td><td>アプリ全体の初期化・設定</td></tr>
+            <tr><td>110_header</td><td>上部ヘッダー</td></tr>
+            <tr><td>120_sidebar</td><td>サイドバー</td></tr>
+            <tr><td>130_nav</td><td>ナビゲーション</td></tr>
+            <tr><td>140_layout</td><td>画面レイアウト</td></tr>
+            <tr><td>150_shell</td><td>アプリシェル</td></tr>
+          </tbody></table></div></div>
+          <div class="card"><h3>ページ・入力・表示</h3><div class="table-wrap"><table><thead><tr><th>連番_大項目</th><th>意味</th></tr></thead><tbody>
+            <tr><td>210_page</td><td>1画面・ルートページ</td></tr>
+            <tr><td>220_section</td><td>ページ内セクション</td></tr>
+            <tr><td>230_form</td><td>入力フォーム</td></tr>
+            <tr><td>240_table</td><td>一覧テーブル</td></tr>
+            <tr><td>250_card</td><td>カード表示</td></tr>
+            <tr><td>260_modal</td><td>モーダル</td></tr>
+            <tr><td>270_drawer</td><td>ドロワー</td></tr>
+            <tr><td>280_toast</td><td>通知</td></tr>
+          </tbody></table></div></div>
+          <div class="card"><h3>システム境界・データ処理</h3><div class="table-wrap"><table><thead><tr><th>連番_大項目</th><th>意味</th></tr></thead><tbody>
+            <tr><td>400_store</td><td>状態管理</td></tr>
+            <tr><td>410_query</td><td>取得クエリ</td></tr>
+            <tr><td>420_command</td><td>変更コマンド</td></tr>
+            <tr><td>500_endpoint</td><td>API エンドポイント</td></tr>
+            <tr><td>510_client</td><td>API クライアント</td></tr>
+            <tr><td>600_service</td><td>アプリケーションサービス</td></tr>
+            <tr><td>610_domain</td><td>ドメインロジック</td></tr>
+            <tr><td>700_job</td><td>定期処理・非同期処理</td></tr>
+            <tr><td>800_report</td><td>レポート・監査</td></tr>
+          </tbody></table></div></div>
+        </div>
+      </section>
+
+      <section id="middle">
+        <div class="section-title"><div><h2>4. 中項目：ドメイン機能名</h2><p class="section-desc">中項目には「そのカテゴリ内で、どのドメイン機能か」を置く。</p></div></div>
+        <div class="grid two">
+          <div class="card">
+            <h3>中項目の代表セット</h3>
+            <div class="domain-cloud">
+              <span class="tag hot">auth</span><span class="tag hot">user</span><span class="tag">account</span><span class="tag">profile</span><span class="tag">org</span><span class="tag">role</span><span class="tag">permission</span><span class="tag">product</span><span class="tag">inventory</span><span class="tag">order</span><span class="tag">payment</span><span class="tag">billing</span><span class="tag">invoice</span><span class="tag">notification</span><span class="tag">search</span><span class="tag">file</span><span class="tag">report</span><span class="tag">dashboard</span><span class="tag">setting</span><span class="tag">audit</span><span class="tag vo">value_object</span><span class="tag man">manipulator</span><span class="tag">metadata</span><span class="tag">workflow</span><span class="tag">import</span><span class="tag">export</span>
+            </div>
+            <div class="notice" style="margin-top:18px"><strong>例:</strong> <code>230_form</code> という入力カテゴリの中で、<code>user</code> のフォームなのか、<code>value_object</code> のフォームなのかを中項目で判定する。</div>
+          </div>
+          <div class="card">
+            <h3>中項目を置いた時の読み方</h3>
+            <table>
+              <thead><tr><th>ファイル名</th><th>読み方</th></tr></thead>
+              <tbody>
+                <tr><td>Ui_230_form_user_profile_field.tsx</td><td>フォームカテゴリの中にある user 機能の profile field UI</td></tr>
+                <tr><td>Bind_230_form_value_object_money_field.ts</td><td>フォームカテゴリの中にある value_object 機能の money field binding</td></tr>
+                <tr><td>Ope_240_table_manipulator_row_drag.ts</td><td>テーブルカテゴリの中にある manipulator 機能の row drag 操作</td></tr>
+                <tr><td>Api_500_endpoint_order_create.ts</td><td>API endpoint カテゴリの中にある order 機能の create API</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="role">
+        <div class="section-title"><div><h2>5. 役割prefix</h2><p class="section-desc">役割prefixは「何をするファイルか」。カテゴリやドメイン機能とは分けて考える。</p></div></div>
+        <div class="card">
+          <div class="table-wrap"><table>
+            <thead><tr><th>役割prefix</th><th>責務</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td>Page_</td><td>ルートページ・画面単位の composition</td><td>Page_210_page_auth_login.tsx</td></tr>
+              <tr><td>Lay_</td><td>layout / shell の構造</td><td>Lay_140_layout_admin_root.tsx</td></tr>
+              <tr><td>Ui_</td><td>表示コンポーネント・UI更新</td><td>Ui_240_table_user_row.tsx</td></tr>
+              <tr><td>Hook_</td><td>React hook / view logic hook</td><td>Hook_230_form_user_dirty_state.ts</td></tr>
+              <tr><td>Bind_</td><td>フォーム・UIと値の束ね</td><td>Bind_230_form_value_object_money_field.ts</td></tr>
+              <tr><td>Val_</td><td>入力検証・invariant</td><td>Val_230_form_payment_card_number.ts</td></tr>
+              <tr><td>Fmt_</td><td>表示用文字列・フォーマット</td><td>Fmt_800_report_audit_diff.ts</td></tr>
+              <tr><td>Map_</td><td>DTO / domain / view model 変換</td><td>Map_510_client_user_response.ts</td></tr>
+              <tr><td>Api_</td><td>API endpoint / API client</td><td>Api_500_endpoint_order_create.ts</td></tr>
+              <tr><td>Svc_</td><td>アプリケーションサービス</td><td>Svc_600_service_billing_invoice_issue.ts</td></tr>
+              <tr><td>Repo_</td><td>DB / 永続化 / repository</td><td>Repo_610_domain_user_find_by_email.ts</td></tr>
+              <tr><td>Ope_</td><td>UI非依存・framework非依存の状態操作</td><td>Ope_240_table_manipulator_row_drag.ts</td></tr>
+              <tr><td>Guard_</td><td>権限・アクセス制御</td><td>Guard_500_endpoint_permission_admin.ts</td></tr>
+              <tr><td>Job_</td><td>定期実行・非同期処理</td><td>Job_700_job_notification_digest.ts</td></tr>
+              <tr><td>Test_</td><td>テストケース・fixture</td><td>Test_230_form_auth_login_submit.ts</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section id="builder">
+        <div class="section-title"><div><h2>6. 命名ビルダー</h2><p class="section-desc">値を選ぶと、今回のルールに沿ったファイル名を自動生成します。</p></div></div>
+        <div class="card builder">
+          <div class="controls">
+            <div class="control"><label>役割prefix</label><select id="roleSel"></select></div>
+            <div class="control"><label>連番付き大項目</label><select id="largeSel"></select></div>
+            <div class="control"><label>中項目：ドメイン機能名</label><select id="midSel"></select></div>
+            <div class="control"><label>小項目：具体対象・操作</label><select id="smallSel"></select></div>
+            <div class="control"><label>拡張子</label><select id="extSel"><option value="tsx">tsx</option><option value="ts">ts</option><option value="rs">rs</option><option value="vue">vue</option><option value="svelte">svelte</option></select></div>
+          </div>
+          <div class="output">
+            <div class="mini-title" style="color:#cbd5e1">生成結果</div>
+            <div class="output-code" id="filenameOut"></div>
+            <small>命名構造</small>
+            <div class="explain" id="explainOut"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="examples">
+        <div class="section-title"><div><h2>7. 命名例</h2><p class="section-desc">曖昧な名前を避け、カテゴリ・ドメイン機能・具体操作が読める名前にする。</p></div></div>
+        <div class="bad-good">
+          <div class="bad"><h3>避けたい例</h3><div class="mono-list"><code>user.ts</code><code>form.tsx</code><code>manager.ts</code><code>tableDrag.ts</code><code>api.ts</code><code>util.ts</code></div></div>
+          <div class="good"><h3>改善例</h3><div class="mono-list"><code>Ui_230_form_user_profile_field.tsx</code><code>Bind_230_form_value_object_money_field.ts</code><code>Ope_240_table_manipulator_row_drag.ts</code><code>Api_500_endpoint_order_create.ts</code><code>Svc_600_service_billing_invoice_issue.ts</code><code>Fmt_800_report_audit_diff.ts</code></div></div>
+        </div>
+      </section>
+
+      <section id="operation">
+        <div class="section-title"><div><h2>8. 運用ルール</h2><p class="section-desc">増やしすぎず、表記ゆれを抑えて、検索しやすい命名にする。</p></div></div>
+        <div class="grid three">
+          <div class="card"><h3>採用基準</h3><ul class="rule-list"><li><span class="check">✓</span><div>大項目は部位名。<code>page</code>, <code>form</code>, <code>table</code>, <code>endpoint</code> など。</div></li><li><span class="check">✓</span><div>中項目はドメイン機能名。<code>auth</code>, <code>user</code>, <code>value_object</code>, <code>manipulator</code> など。</div></li></ul></div>
+          <div class="card"><h3>避ける語</h3><ul class="rule-list"><li><span class="check">!</span><div><code>manager</code>, <code>util</code>, <code>helper</code>, <code>common</code> の乱用。</div></li><li><span class="check">!</span><div><code>ctrl</code>, <code>data</code>, <code>sys</code> など、責務や役割prefixと衝突する語。</div></li></ul></div>
+          <div class="card"><h3>変更タイミング</h3><ul class="rule-list"><li><span class="check">→</span><div>新規作成、責務分割、明示リネーム時から適用。</div></li><li><span class="check">→</span><div>既存ファイルは命名規則だけのために一括リネームしない。</div></li></ul></div>
+        </div>
+      </section>
+
+      <footer>Webシステム prefix 命名ルールガイド / standalone HTML</footer>
+    </main>
+  </div>
+
+  <script>
+    const roles = [
+      ["Ui", "表示コンポーネント・UI更新"],
+      ["Page", "ルートページ・画面単位の composition"],
+      ["Bind", "フォーム・UIと値の束ね"],
+      ["Ope", "UI非依存の状態操作"],
+      ["Api", "API endpoint / client"],
+      ["Svc", "アプリケーションサービス"],
+      ["Val", "入力検証・invariant"],
+      ["Fmt", "表示用文字列"],
+      ["Hook", "React hook / view logic"],
+      ["Map", "DTO / domain / view model 変換"]
+    ];
+    const larges = [
+      ["100_app", "アプリ全体"], ["110_header", "上部ヘッダー"], ["120_sidebar", "サイドバー"], ["130_nav", "ナビゲーション"], ["140_layout", "レイアウト"], ["150_shell", "アプリシェル"],
+      ["210_page", "1画面・ルートページ"], ["220_section", "ページ内セクション"], ["230_form", "入力フォーム"], ["240_table", "一覧テーブル"], ["250_card", "カード表示"], ["260_modal", "モーダル"], ["270_drawer", "ドロワー"], ["280_toast", "通知"],
+      ["400_store", "状態管理"], ["500_endpoint", "API エンドポイント"], ["510_client", "API クライアント"], ["600_service", "サービス"], ["610_domain", "ドメインロジック"], ["700_job", "非同期処理"], ["800_report", "レポート"]
+    ];
+    const mids = [
+      ["auth", "認証・ログイン"], ["user", "ユーザー"], ["account", "アカウント"], ["profile", "プロフィール"], ["org", "組織"], ["role", "ロール"], ["permission", "権限"],
+      ["product", "商品"], ["inventory", "在庫"], ["order", "注文"], ["payment", "決済"], ["billing", "請求"], ["invoice", "請求書"], ["notification", "通知"],
+      ["search", "検索"], ["file", "ファイル"], ["report", "レポート"], ["setting", "設定"], ["audit", "監査"], ["metadata", "メタデータ"],
+      ["value_object", "値オブジェクト"], ["manipulator", "操作・加工機能"], ["workflow", "ワークフロー"], ["import", "インポート"], ["export", "エクスポート"]
+    ];
+    const smalls = [
+      ["root", "root"], ["login", "login"], ["submit", "submit"], ["profile_field", "profile field"], ["money_field", "money field"], ["row", "row"], ["row_drag", "row drag"], ["list", "list"], ["detail", "detail"], ["create", "create"], ["update", "update"], ["delete", "delete"], ["filter", "filter"], ["sort", "sort"], ["pagination", "pagination"], ["preview", "preview"], ["diff", "diff"]
+    ];
+    function fillSelect(id, items){
+      const el = document.getElementById(id);
+      items.forEach(([value, label])=>{
+        const opt = document.createElement('option');
+        opt.value = value; opt.textContent = `${value} — ${label}`;
+        el.appendChild(opt);
+      });
+    }
+    fillSelect('roleSel', roles); fillSelect('largeSel', larges); fillSelect('midSel', mids); fillSelect('smallSel', smalls);
+    document.getElementById('roleSel').value='Ui';
+    document.getElementById('largeSel').value='230_form';
+    document.getElementById('midSel').value='value_object';
+    document.getElementById('smallSel').value='money_field';
+    document.getElementById('extSel').value='tsx';
+    function selectedText(id){ const el = document.getElementById(id); return el.options[el.selectedIndex].textContent; }
+    function updateName(){
+      const role=document.getElementById('roleSel').value;
+      const large=document.getElementById('largeSel').value;
+      const mid=document.getElementById('midSel').value;
+      const small=document.getElementById('smallSel').value;
+      const ext=document.getElementById('extSel').value;
+      const file=`${role}_${large}_${mid}_${small}.${ext}`;
+      document.getElementById('filenameOut').innerHTML = `<span class="seg-role">${role}_</span><span class="seg-big">${large}_</span><span class="seg-mid">${mid}_</span><span class="seg-small">${small}</span><span class="seg-ext">.${ext}</span>`;
+      document.getElementById('explainOut').innerHTML = `
+        <div><strong>役割prefix:</strong> ${selectedText('roleSel')}</div>
+        <div><strong>連番付き大項目:</strong> ${selectedText('largeSel')}。カテゴリ化された一番大きい部位。</div>
+        <div><strong>中項目:</strong> ${selectedText('midSel')}。そのカテゴリ内のドメイン機能名。</div>
+        <div><strong>小項目:</strong> ${selectedText('smallSel')}。具体対象・操作。</div>
+      `;
+    }
+    ['roleSel','largeSel','midSel','smallSel','extSel'].forEach(id=>document.getElementById(id).addEventListener('change',updateName));
+    updateName();
+
+    const links = document.querySelectorAll('.navlink');
+    const sections = [...links].map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    const obs = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          links.forEach(a=>a.classList.toggle('active', a.getAttribute('href') === '#'+e.target.id));
+        }
+      });
+    },{rootMargin:'-35% 0px -60% 0px',threshold:0});
+    sections.forEach(s=>obs.observe(s));
+  </script>
+</body>
+</html>

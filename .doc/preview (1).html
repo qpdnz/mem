@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prefix Naming Web App</title>
+  <style>
+:root {
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --ink: #172033;
+  --muted: #647084;
+  --line: #dce3ef;
+  --soft: #eef3fb;
+  --accent: #2563eb;
+  --accent-dark: #1e40af;
+  --accent-soft: #e7efff;
+  --green: #0f766e;
+  --green-soft: #e8f6f3;
+  --orange: #c2410c;
+  --orange-soft: #fff0e8;
+  --purple: #6d28d9;
+  --purple-soft: #f0eaff;
+  --shadow: 0 18px 50px rgba(38, 49, 75, .12);
+  --radius: 22px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, .12), transparent 30vw),
+    radial-gradient(circle at bottom right, rgba(109, 40, 217, .10), transparent 35vw),
+    var(--bg);
+  color: var(--ink);
+}
+
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.app-shell { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 28px;
+  background: rgba(255, 255, 255, .78);
+  border-right: 1px solid var(--line);
+  backdrop-filter: blur(20px);
+}
+.brand { display: flex; gap: 14px; align-items: center; margin-bottom: 30px; }
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  color: #fff;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+}
+.brand h1 { margin: 2px 0 0; font-size: 20px; line-height: 1.25; }
+.eyebrow { margin: 0 0 8px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.nav { display: grid; gap: 8px; }
+.nav a {
+  padding: 12px 14px;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: 14px;
+  transition: .18s ease;
+}
+.nav a:hover { background: var(--accent-soft); color: var(--accent-dark); }
+.sidebar-note {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 14px;
+  background: var(--soft);
+  border-radius: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.sidebar-note p { margin: 0; }
+.dot { flex: 0 0 10px; width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; background: var(--green); }
+
+main { padding: 34px; display: grid; gap: 26px; }
+.panel {
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(220, 227, 239, .95);
+  border-radius: var(--radius);
+  padding: 26px;
+  box-shadow: var(--shadow);
+}
+.hero { display: grid; grid-template-columns: 1.5fr .85fr; gap: 22px; align-items: center; overflow: hidden; }
+.hero h2, .section-head h2 { margin: 0 0 12px; font-size: clamp(24px, 3vw, 38px); line-height: 1.18; letter-spacing: -.03em; }
+.section-head h2 { font-size: clamp(22px, 2.2vw, 30px); }
+.hero p, .section-head p { margin: 0; color: var(--muted); line-height: 1.85; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.primary, .ghost {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 800;
+  transition: .18s ease;
+}
+.primary { background: var(--accent); color: #fff; box-shadow: 0 12px 28px rgba(37,99,235,.25); }
+.primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+.ghost { background: var(--soft); color: var(--ink); }
+.ghost:hover { background: var(--accent-soft); color: var(--accent-dark); }
+.full { width: 100%; }
+.hero-card {
+  position: relative;
+  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #13213b, #243d75);
+  color: #fff;
+  min-height: 220px;
+}
+.hero-card:after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -60px auto;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+}
+.code-title { color: rgba(255,255,255,.7); font-size: 13px; margin-bottom: 18px; }
+.hero-card code { display: block; font-size: clamp(18px, 2vw, 26px); word-break: break-all; }
+.hero-card p { margin: 18px 0 0; color: rgba(255,255,255,.78); line-height: 1.7; }
+
+.grid { display: grid; gap: 26px; }
+.two-col { grid-template-columns: minmax(0, 1fr) minmax(340px, .74fr); }
+.section-head { margin-bottom: 22px; }
+.section-head.compact { margin-bottom: 14px; }
+.builder-form { display: grid; gap: 14px; }
+label { display: grid; gap: 8px; color: var(--ink); font-weight: 800; }
+select, input, textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 13px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: .15s ease;
+}
+textarea { resize: vertical; line-height: 1.65; }
+select:focus, input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+.sticky-card { position: sticky; top: 24px; align-self: start; }
+.filename-output {
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  padding: 18px;
+  margin: 8px 0 14px;
+  border-radius: 18px;
+  background: #0f172a;
+  color: #dbeafe;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 800;
+  word-break: break-all;
+}
+.readout {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--soft);
+  color: var(--muted);
+  line-height: 1.8;
+}
+.readout b { color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; color: var(--muted); background: #fff; font-size: 12px; font-weight: 700; }
+
+.browser-frame { border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: #eef2f7; }
+.browser-top { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--muted); }
+.browser-top span { width: 11px; height: 11px; border-radius: 50%; background: #cbd5e1; }
+.browser-top strong { margin-left: 10px; font-size: 13px; }
+.web-screen {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  grid-template-rows: 70px 1fr;
+  min-height: 520px;
+}
+.hotspot { position: relative; border: 2px solid transparent; transition: .18s ease; }
+.hotspot:hover { border-color: var(--accent); transform: translateY(-1px); }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(37,99,235,.12);
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 900;
+}
+.web-header { grid-column: 1 / -1; padding: 18px 22px; background: #fff; font-weight: 900; display: flex; align-items: center; gap: 12px; }
+.web-sidebar { padding: 22px; background: #16213a; color: #dbeafe; line-height: 1.65; }
+.web-sidebar .tag { background: rgba(255,255,255,.12); color: #bfdbfe; margin-bottom: 12px; }
+.web-main { display: grid; grid-template-columns: 1fr 330px; grid-template-rows: auto 1fr auto; gap: 14px; padding: 18px; background: #f8fafc; }
+.toolbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; background: #fff; }
+.toolbar button { border: 0; border-radius: 10px; padding: 9px 12px; background: var(--accent); color: #fff; font-weight: 900; }
+.toolbar code { color: var(--muted); }
+.table-area { padding: 16px; border-radius: 18px; background: #fff; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; overflow: hidden; border-radius: 14px; }
+th, td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; }
+th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.assign-card, .domain-card { padding: 16px; border-radius: 18px; background: var(--green-soft); color: var(--green); font-weight: 900; line-height: 1.65; }
+.domain-card { grid-column: 1 / -1; background: var(--purple-soft); color: var(--purple); }
+.assign-card .tag, .domain-card .tag { margin-bottom: 12px; background: rgba(255,255,255,.6); }
+
+.flow { display: grid; gap: 12px; }
+.flow-node {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  padding: 15px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  transition: .18s ease;
+}
+.flow-node:hover, .flow-node.active { border-color: var(--accent); background: var(--accent-soft); }
+.flow-node span { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
+.sql-demo { display: grid; gap: 14px; }
+.result-title { font-weight: 900; color: var(--muted); }
+.result-box { border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-height: 116px; background: #fff; overflow: auto; }
+.result-box.empty { display: grid; place-items: center; color: var(--muted); }
+.assignment-box { padding: 14px; border-radius: 16px; background: var(--orange-soft); color: var(--orange); line-height: 1.7; }
+.assignment-box code { display: block; margin-top: 6px; font-weight: 900; }
+
+.judge-layout { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: end; }
+.judge-layout label { grid-column: 1 / -1; }
+.judge-result { grid-column: 1 / -1; padding: 18px; border-radius: 18px; background: var(--soft); min-height: 84px; line-height: 1.8; }
+.judge-result h3 { margin: 0 0 8px; }
+.judge-result code { display: inline-block; padding: 4px 7px; border-radius: 8px; background: #fff; color: var(--accent-dark); font-weight: 900; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.tab { border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; background: #fff; font-weight: 900; }
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-radius: 18px; padding: 16px; background: #fff; }
+.card h3 { margin: 0 0 8px; font-size: 18px; }
+.card p { margin: 0 0 12px; color: var(--muted); line-height: 1.65; }
+.card code { display: inline-block; padding: 5px 8px; border-radius: 8px; background: var(--soft); font-weight: 900; }
+.card button { border: 0; border-radius: 12px; padding: 9px 12px; background: var(--accent-soft); color: var(--accent-dark); font-weight: 900; }
+.example-list { display: grid; gap: 10px; }
+.example-row { display: grid; grid-template-columns: minmax(260px, .75fr) 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: 16px; padding: 12px; background: #fff; }
+.example-row code { font-weight: 900; color: var(--accent-dark); }
+.example-row p { margin: 0; color: var(--muted); line-height: 1.55; }
+.example-row button { border: 0; border-radius: 12px; padding: 9px 12px; background: var(--soft); font-weight: 900; }
+
+.toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  transform: translateY(20px);
+  opacity: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #fff;
+  box-shadow: var(--shadow);
+  transition: .2s ease;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media (max-width: 1080px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .nav { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  main { padding: 22px; }
+  .hero, .two-col { grid-template-columns: 1fr; }
+  .sticky-card { position: relative; top: auto; }
+}
+@media (max-width: 760px) {
+  .web-screen { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .web-header, .web-sidebar { grid-column: 1; }
+  .web-main { grid-template-columns: 1fr; }
+  .toolbar, .domain-card { grid-column: 1; }
+  .judge-layout { grid-template-columns: 1fr; }
+  .example-row { grid-template-columns: 1fr; }
+  .panel { padding: 18px; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">PN</div>
+        <div>
+          <p class="eyebrow">Prefix Naming</p>
+          <h1>カテゴリ判定Webアプリ</h1>
+        </div>
+      </div>
+      <nav class="nav" aria-label="画面ナビゲーション">
+        <a href="#builder">命名ビルダー</a>
+        <a href="#visual">実画面マップ</a>
+        <a href="#mvc">MVC / SQLフロー</a>
+        <a href="#judge">カテゴリ判定</a>
+        <a href="#dictionary">語彙辞書</a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="dot"></span>
+        <p>ファイル名は <strong>役割prefix_連番_大項目_中項目_小項目[_対象].rs</strong> で生成します。</p>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Web app edition</p>
+          <h2>「カテゴリワークされた中で、どの機能か」を判定する命名アプリ</h2>
+          <p>
+            大項目の前に連番を置き、大項目は一番大きい部位名にします。
+            中項目には <strong>MVC</strong>、<strong>SQL実行</strong>、<strong>SQL結果</strong>、<strong>Value Object Manipulator</strong>、<strong>Variate</strong> などのドメイン機能名を置きます。
+          </p>
+          <div class="hero-actions">
+            <button class="primary" data-scroll="#builder">命名する</button>
+            <button class="ghost" data-demo="sql">SQL結果表示の例を見る</button>
+          </div>
+        </div>
+        <div class="hero-card" aria-label="生成例">
+          <div class="code-title">生成例</div>
+          <code id="heroExample">Bind_020_view_sqlresult_assign.rs</code>
+          <p>020_view のカテゴリ内で、sqlresult 機能の assign を担当する。</p>
+        </div>
+      </section>
+
+      <section id="builder" class="grid two-col">
+        <div class="panel">
+          <div class="section-head">
+            <p class="eyebrow">Builder</p>
+            <h2>命名ビルダー</h2>
+            <p>役割、連番付き大項目、中項目のドメイン機能、小項目の具体処理を選ぶと、ファイル名が生成されます。</p>
+          </div>
+
+          <form class="builder-form" id="builderForm">
+            <label>
+              役割 prefix
+              <select id="roleSelect"></select>
+            </label>
+            <label>
+              連番 + 大項目（一番大きい部位）
+              <select id="majorSelect"></select>
+            </label>
+            <label>
+              中項目（ドメイン機能名）
+              <select id="featureSelect"></select>
+            </label>
+            <label>
+              小項目（具体処理）
+              <input id="minorInput" type="text" value="assign" placeholder="assign / query / table / apply" />
+            </label>
+            <label>
+              対象（任意）
+              <input id="targetInput" type="text" value="" placeholder="user / order / list など" />
+            </label>
+          </form>
+        </div>
+
+        <div class="panel sticky-card">
+          <div class="section-head compact">
+            <p class="eyebrow">Live output</p>
+            <h2>生成ファイル名</h2>
+          </div>
+          <div class="filename-output" id="filenameOutput">Bind_020_view_sqlresult_assign.rs</div>
+          <button class="primary full" id="copyButton">コピー</button>
+          <div class="readout" id="readout"></div>
+          <div class="chips" id="relatedChips"></div>
+        </div>
+      </section>
+
+      <section id="visual" class="panel">
+        <div class="section-head">
+          <p class="eyebrow">Screen map</p>
+          <h2>実際のWebアプリ画面では、こういうところ</h2>
+          <p>画面上の部位をクリックすると、その部位に合う命名例がビルダーに入ります。</p>
+        </div>
+
+        <div class="browser-frame">
+          <div class="browser-top">
+            <span></span><span></span><span></span>
+            <strong>sample-admin.local/users</strong>
+          </div>
+          <div class="web-screen">
+            <div class="web-header hotspot" data-preset="mvc">
+              <span class="tag">010_app / mvc</span>
+              App Shell・Router・MVC接続
+            </div>
+            <div class="web-sidebar hotspot" data-preset="controller">
+              <span class="tag">030_ctl / sqlexec</span>
+              Controller<br />検索ボタン・イベント入口
+            </div>
+            <div class="web-main">
+              <div class="toolbar hotspot" data-preset="sqlexec">
+                <span class="tag">050_db / sqlexec</span>
+                <button>SQL実行</button>
+                <code>SELECT * FROM users;</code>
+              </div>
+              <div class="table-area hotspot" data-preset="sqltable">
+                <span class="tag">020_view / sqlresult</span>
+                <table>
+                  <thead><tr><th>id</th><th>name</th><th>status</th></tr></thead>
+                  <tbody><tr><td>1</td><td>Aki</td><td>active</td></tr><tr><td>2</td><td>Ren</td><td>pending</td></tr></tbody>
+                </table>
+              </div>
+              <div class="assign-card hotspot" data-preset="assign">
+                <span class="tag">020_view / sqlresult</span>
+                SQL結果を ViewModel / Table state に代入
+              </div>
+              <div class="domain-card hotspot" data-preset="vobjmanip">
+                <span class="tag">060_domain / vobjmanip</span>
+                Value Object Manipulator・Variate・Validate
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvc" class="grid two-col">
+        <div class="panel">
+          <div class="section-head">
+            <p class="eyebrow">MVC + SQL</p>
+            <h2>MVC、SQL実行、SQL結果代入、表示の流れ</h2>
+            <p>Webアプリの処理の流れを、命名上の大項目・中項目に対応させます。</p>
+          </div>
+
+          <div class="flow" id="flow">
+            <button class="flow-node" data-preset="mvc"><b>1. MVC入口</b><span>Sys_010_app_mvc_route.rs</span></button>
+            <button class="flow-node" data-preset="controller"><b>2. Controller</b><span>Ope_030_ctl_sqlexec_submit.rs</span></button>
+            <button class="flow-node" data-preset="sqlexec"><b>3. SQL実行</b><span>Sys_050_db_sqlexec_query.rs</span></button>
+            <button class="flow-node" data-preset="decode"><b>4. SQL結果Decode</b><span>Dec_050_db_sqlresult_row.rs</span></button>
+            <button class="flow-node" data-preset="assign"><b>5. Viewへ代入</b><span>Bind_020_view_sqlresult_assign.rs</span></button>
+            <button class="flow-node" data-preset="sqltable"><b>6. 結果表示</b><span>Ui_020_view_sqlresult_table.rs</span></button>
+          </div>
+        </div>
+
+        <div class="panel sql-demo">
+          <div class="section-head compact">
+            <p class="eyebrow">SQL demo</p>
+            <h2>SQL結果表示の疑似デモ</h2>
+          </div>
+          <label>
+            SQL
+            <textarea id="sqlInput" rows="4">SELECT id, name, status FROM users WHERE status = 'active';</textarea>
+          </label>
+          <button class="primary full" id="runSqlButton">疑似SQLを実行</button>
+          <div class="result-title">Result rows</div>
+          <div id="sqlResult" class="result-box empty">まだ実行されていません。</div>
+          <div class="assignment-box" id="assignmentBox">
+            <strong>View代入名:</strong>
+            <code>Bind_020_view_sqlresult_assign.rs</code>
+          </div>
+        </div>
+      </section>
+
+      <section id="judge" class="panel">
+        <div class="section-head">
+          <p class="eyebrow">Judge</p>
+          <h2>カテゴリ判定</h2>
+          <p>やりたい処理を日本語で入れると、カテゴリワーク内の大項目・中項目・小項目を推定します。</p>
+        </div>
+        <div class="judge-layout">
+          <label>
+            処理内容
+            <textarea id="judgeText" rows="3" placeholder="例: SQL結果をテーブルに表示して、ViewModelへ代入する"></textarea>
+          </label>
+          <button class="primary" id="judgeButton">判定する</button>
+          <div class="judge-result" id="judgeResult">
+            <p>ここに判定結果が出ます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="dictionary" class="panel">
+        <div class="section-head">
+          <p class="eyebrow">Dictionary</p>
+          <h2>大項目・中項目の語彙辞書</h2>
+          <p>大項目は一番大きい部位、中項目はその中でのドメイン機能名として使います。</p>
+        </div>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="majors">大項目</button>
+          <button class="tab" data-tab="features">中項目</button>
+          <button class="tab" data-tab="examples">命名例</button>
+        </div>
+        <div id="dictionaryContent"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+const roles = [
+  { code: 'Ui', label: 'Ui_ / UIノード構築・更新' },
+  { code: 'Bind', label: 'Bind_ / 値をViewやFieldに束ねる' },
+  { code: 'Sys', label: 'Sys_ / System・実行入口' },
+  { code: 'Ope', label: 'Ope_ / 状態操作・手続き' },
+  { code: 'Cal', label: 'Cal_ / 判定・計算' },
+  { code: 'Val', label: 'Val_ / 検証・invariant' },
+  { code: 'Dec', label: 'Dec_ / 外部値・SQL rowのDecode' },
+  { code: 'Fmt', label: 'Fmt_ / 表示文字列化' },
+  { code: 'Fac', label: 'Fac_ / 生成・組み立て' },
+  { code: 'Log', label: 'Log_ / 診断ログ' }
+];
+
+const majors = [
+  { serial: '010', code: 'app', name: 'App全体', desc: 'Router、Boot、MVC接続など、Webアプリ全体の入口。', features: ['mvc', 'route', 'boot', 'state'] },
+  { serial: '020', code: 'view', name: 'View / UI', desc: '画面表示、テーブル、フォーム、ViewModelへの代入。', features: ['mvc', 'sqlresult', 'sqldisplay', 'assign', 'table', 'form'] },
+  { serial: '030', code: 'ctl', name: 'Controller', desc: 'ユーザー操作、submit、request、SQL実行依頼の入口。', features: ['mvc', 'sqlexec', 'submit', 'request', 'action'] },
+  { serial: '040', code: 'model', name: 'Model', desc: 'Model、DTO、Repository、Entityの読み書き。', features: ['mvc', 'repo', 'entity', 'dto', 'mapper'] },
+  { serial: '050', code: 'db', name: 'DB / SQL', desc: 'SQL実行、SQL結果、transaction、row mapping。', features: ['sqlexec', 'sqlresult', 'tx', 'mapper', 'repo'] },
+  { serial: '060', code: 'domain', name: 'Domain機能', desc: 'ビジネスルール、Manipulator、Variate、Validate。', features: ['vobjmanip', 'variate', 'validate', 'rule', 'service'] },
+  { serial: '070', code: 'vobj', name: 'Value Object', desc: 'Value Object、invariant、生成、変換、操作。', features: ['vobjmanip', 'validate', 'factory', 'convert', 'assign'] },
+  { serial: '080', code: 'var', name: 'Variate / Variant', desc: '値の派生、バリエーション、変数変換。', features: ['variate', 'variant', 'variable', 'derive', 'select'] },
+  { serial: '090', code: 'dbg', name: 'Debug / Trace', desc: 'SQLログ、MVC trace、差分、audit。', features: ['log', 'trace', 'diff', 'audit', 'sqlresult'] }
+];
+
+const features = [
+  { code: 'mvc', name: 'MVC', desc: 'Model / View / Controller の接続・流れを表す。' },
+  { code: 'sqlexec', name: 'SQL実行', desc: 'SQL文を実行する入口。query / submit / run などを小項目にする。' },
+  { code: 'sqlresult', name: 'SQL結果', desc: '実行後のrow、table、cell、assign、decode、displayを束ねる。' },
+  { code: 'sqldisplay', name: 'SQL結果表示', desc: 'SQL結果を画面に出すことを明示したい場合。通常は sqlresult + table でもよい。' },
+  { code: 'assign', name: '代入 / 反映', desc: 'ViewModel、state、fieldへ値を代入・反映する。' },
+  { code: 'vobjmanip', name: 'Value Object Manipulator', desc: 'Value Objectをルールに従って操作・更新・正規化する。' },
+  { code: 'variate', name: 'Variate', desc: '値を変化・派生・展開するドメイン処理。' },
+  { code: 'validate', name: 'Validate', desc: '入力値、Value Object、SQL結果のinvariant検証。' },
+  { code: 'repo', name: 'Repository', desc: 'ModelとDB/SQLの境界。' },
+  { code: 'mapper', name: 'Mapper', desc: 'SQL row、DTO、Value Object、ViewModelの変換。' },
+  { code: 'route', name: 'Route', desc: '画面遷移やURLルーティング。' },
+  { code: 'table', name: 'Table', desc: '表形式UI。sqlresultの小項目としても使う。' },
+  { code: 'form', name: 'Form', desc: '入力フォーム、検索条件、submit。' }
+];
+
+const presets = {
+  mvc:       { role: 'Sys',  major: '010_app',   feature: 'mvc',        minor: 'route',   target: '' },
+  controller:{ role: 'Ope',  major: '030_ctl',   feature: 'sqlexec',    minor: 'submit',  target: '' },
+  sqlexec:   { role: 'Sys',  major: '050_db',    feature: 'sqlexec',    minor: 'query',   target: '' },
+  decode:    { role: 'Dec',  major: '050_db',    feature: 'sqlresult',  minor: 'row',     target: '' },
+  assign:    { role: 'Bind', major: '020_view',  feature: 'sqlresult',  minor: 'assign',  target: '' },
+  sqltable:  { role: 'Ui',   major: '020_view',  feature: 'sqlresult',  minor: 'table',   target: '' },
+  sqldisplay:{ role: 'Ui',   major: '020_view',  feature: 'sqldisplay', minor: 'table',   target: '' },
+  vobjmanip: { role: 'Ope',  major: '060_domain',feature: 'vobjmanip',  minor: 'apply',   target: '' },
+  variate:   { role: 'Cal',  major: '080_var',   feature: 'variate',    minor: 'derive',  target: '' },
+  validate:  { role: 'Val',  major: '070_vobj',  feature: 'validate',   minor: 'invariant', target: '' },
+  mapper:    { role: 'Fac',  major: '040_model', feature: 'mapper',     minor: 'dto',     target: '' }
+};
+
+const examples = [
+  { name: 'Sys_010_app_mvc_route.rs', desc: 'アプリ全体のMVCルート接続。', preset: 'mvc' },
+  { name: 'Ui_020_view_mvc_render.rs', desc: 'View側でMVCから受け取った状態を描画。', preset: 'mvc' },
+  { name: 'Ope_030_ctl_sqlexec_submit.rs', desc: 'Controller側のSQL実行submit処理。', preset: 'controller' },
+  { name: 'Sys_050_db_sqlexec_query.rs', desc: 'DB領域でSQL queryを実行。', preset: 'sqlexec' },
+  { name: 'Dec_050_db_sqlresult_row.rs', desc: 'SQL結果rowをDTOやValue Objectへdecode。', preset: 'decode' },
+  { name: 'Bind_020_view_sqlresult_assign.rs', desc: 'SQL結果をViewModelやtable stateへ代入。', preset: 'assign' },
+  { name: 'Ui_020_view_sqlresult_table.rs', desc: 'SQL結果をテーブルとして表示。', preset: 'sqltable' },
+  { name: 'Fmt_020_view_sqlresult_cell.rs', desc: 'SQL結果cellを画面表示用文字列に整形。', preset: 'sqltable' },
+  { name: 'Val_070_vobj_validate_invariant.rs', desc: 'Value Objectのinvariant検証。', preset: 'validate' },
+  { name: 'Ope_060_domain_vobjmanip_apply.rs', desc: 'Value Object Manipulatorで値を操作。', preset: 'vobjmanip' },
+  { name: 'Cal_080_var_variate_value.rs', desc: '値を派生・変化させるVariate処理。', preset: 'variate' },
+  { name: 'Fac_040_model_mapper_dto.rs', desc: 'Model領域でDTO mapperを組み立て。', preset: 'mapper' }
+];
+
+const roleSelect = document.getElementById('roleSelect');
+const majorSelect = document.getElementById('majorSelect');
+const featureSelect = document.getElementById('featureSelect');
+const minorInput = document.getElementById('minorInput');
+const targetInput = document.getElementById('targetInput');
+const filenameOutput = document.getElementById('filenameOutput');
+const heroExample = document.getElementById('heroExample');
+const readout = document.getElementById('readout');
+const relatedChips = document.getElementById('relatedChips');
+const toast = document.getElementById('toast');
+
+function option(value, label) {
+  const opt = document.createElement('option');
+  opt.value = value;
+  opt.textContent = label;
+  return opt;
+}
+
+function cleanToken(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .replace(/^_+|_+$/g, '') || 'item';
+}
+
+function getMajorValue(m) {
+  return `${m.serial}_${m.code}`;
+}
+
+function getSelectedMajor() {
+  return majors.find(m => getMajorValue(m) === majorSelect.value) || majors[0];
+}
+
+function getSelectedFeature() {
+  return features.find(f => f.code === featureSelect.value) || features[0];
+}
+
+function filenameFromState() {
+  const role = roleSelect.value;
+  const major = majorSelect.value;
+  const feature = featureSelect.value;
+  const minor = cleanToken(minorInput.value);
+  const target = cleanToken(targetInput.value);
+  const parts = [role, major, feature, minor];
+  if (targetInput.value.trim()) parts.push(target);
+  return `${parts.join('_')}.rs`;
+}
+
+function renderReadout() {
+  const major = getSelectedMajor();
+  const feature = getSelectedFeature();
+  const filename = filenameFromState();
+  filenameOutput.textContent = filename;
+  heroExample.textContent = filename;
+  readout.innerHTML = `
+    <b>${major.serial}_${major.code}</b> は「${major.name}」という一番大きい部位。<br>
+    <b>${feature.code}</b> は、その部位の中にあるドメイン機能。<br>
+    <b>${cleanToken(minorInput.value)}</b> は、その機能の中の具体処理です。
+  `;
+  const chips = [major.name, feature.name, `minor: ${cleanToken(minorInput.value)}`, `role: ${roleSelect.value}_`];
+  relatedChips.innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join('');
+}
+
+function applyPreset(key) {
+  const p = presets[key];
+  if (!p) return;
+  roleSelect.value = p.role;
+  majorSelect.value = p.major;
+  featureSelect.value = p.feature;
+  minorInput.value = p.minor;
+  targetInput.value = p.target || '';
+  renderReadout();
+  document.querySelectorAll('.flow-node').forEach(node => node.classList.toggle('active', node.dataset.preset === key));
+  showToast(`${filenameFromState()} をセットしました`);
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1700);
+}
+
+function populate() {
+  roles.forEach(r => roleSelect.appendChild(option(r.code, r.label)));
+  majors.forEach(m => majorSelect.appendChild(option(getMajorValue(m), `${m.serial}_${m.code} / ${m.name}`)));
+  features.forEach(f => featureSelect.appendChild(option(f.code, `${f.code} / ${f.name}`)));
+  applyPreset('assign');
+}
+
+function renderDictionary(tab = 'majors') {
+  const el = document.getElementById('dictionaryContent');
+  if (tab === 'majors') {
+    el.innerHTML = `<div class="cards">${majors.map(m => `
+      <article class="card">
+        <h3>${m.serial}_${m.code}</h3>
+        <p><strong>${m.name}</strong><br>${m.desc}</p>
+        <p>${m.features.map(f => `<code>${f}</code>`).join(' ')}</p>
+        <button data-major="${getMajorValue(m)}">この大項目を使う</button>
+      </article>`).join('')}</div>`;
+    el.querySelectorAll('[data-major]').forEach(btn => btn.addEventListener('click', () => {
+      majorSelect.value = btn.dataset.major;
+      renderReadout();
+      showToast(`${btn.dataset.major} を選択しました`);
+    }));
+  }
+  if (tab === 'features') {
+    el.innerHTML = `<div class="cards">${features.map(f => `
+      <article class="card">
+        <h3>${f.code}</h3>
+        <p><strong>${f.name}</strong><br>${f.desc}</p>
+        <button data-feature="${f.code}">この中項目を使う</button>
+      </article>`).join('')}</div>`;
+    el.querySelectorAll('[data-feature]').forEach(btn => btn.addEventListener('click', () => {
+      featureSelect.value = btn.dataset.feature;
+      renderReadout();
+      showToast(`${btn.dataset.feature} を選択しました`);
+    }));
+  }
+  if (tab === 'examples') {
+    el.innerHTML = `<div class="example-list">${examples.map(ex => `
+      <div class="example-row">
+        <code>${ex.name}</code>
+        <p>${ex.desc}</p>
+        <button data-preset="${ex.preset}">ビルダーへ</button>
+      </div>`).join('')}</div>`;
+    el.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
+  }
+}
+
+function judgeIntent(text) {
+  const t = text.toLowerCase();
+  const has = (...keys) => keys.some(k => t.includes(k.toLowerCase()));
+  if (has('sql結果', 'sql result') && has('代入', 'assign', 'viewmodel', 'state', '反映')) return 'assign';
+  if (has('sql結果', 'sql result') && has('表示', 'table', '一覧', 'テーブル')) return 'sqltable';
+  if (has('sql実行', 'select', 'query', 'クエリ', '検索')) return 'sqlexec';
+  if (has('mvc', 'model view controller')) return 'mvc';
+  if (has('controller', 'submit', '送信', 'クリック')) return 'controller';
+  if (has('decode', 'row', 'dto', '変換')) return 'decode';
+  if (has('value object', 'バリューオブジェクト', 'vo') && has('操作', 'manipulator', 'マニピュレーター', 'マリキュレーター')) return 'vobjmanip';
+  if (has('variate', '派生', '変化', 'バリエーション')) return 'variate';
+  if (has('validate', '検証', 'invariant')) return 'validate';
+  return 'mvc';
+}
+
+function renderJudge() {
+  const text = document.getElementById('judgeText').value || 'MVCの画面からSQLを実行して結果を表示する';
+  const key = judgeIntent(text);
+  applyPreset(key);
+  const major = getSelectedMajor();
+  const feature = getSelectedFeature();
+  document.getElementById('judgeResult').innerHTML = `
+    <h3>判定結果: <code>${filenameFromState()}</code></h3>
+    <p>
+      大項目は <code>${major.serial}_${major.code}</code>、中項目は <code>${feature.code}</code>、小項目は <code>${cleanToken(minorInput.value)}</code> が合います。<br>
+      つまり「${major.name}」というカテゴリワークの中で、「${feature.name}」機能を担当するファイルとして読めます。
+    </p>
+  `;
+}
+
+function renderSqlResult() {
+  const rows = [
+    { id: 1, name: 'Aki', status: 'active' },
+    { id: 3, name: 'Mio', status: 'active' },
+    { id: 7, name: 'Sora', status: 'active' }
+  ];
+  const result = document.getElementById('sqlResult');
+  result.classList.remove('empty');
+  result.innerHTML = `
+    <table>
+      <thead><tr><th>id</th><th>name</th><th>status</th></tr></thead>
+      <tbody>${rows.map(r => `<tr><td>${r.id}</td><td>${r.name}</td><td>${r.status}</td></tr>`).join('')}</tbody>
+    </table>
+  `;
+  document.getElementById('assignmentBox').innerHTML = `
+    <strong>この流れで使う命名</strong>
+    <code>Sys_050_db_sqlexec_query.rs</code>
+    <code>Dec_050_db_sqlresult_row.rs</code>
+    <code>Bind_020_view_sqlresult_assign.rs</code>
+    <code>Ui_020_view_sqlresult_table.rs</code>
+  `;
+  applyPreset('sqltable');
+}
+
+function initEvents() {
+  [roleSelect, majorSelect, featureSelect, minorInput, targetInput].forEach(el => el.addEventListener('input', renderReadout));
+  document.getElementById('copyButton').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(filenameFromState());
+      showToast('コピーしました');
+    } catch {
+      showToast('コピーできませんでした');
+    }
+  });
+  document.querySelectorAll('[data-scroll]').forEach(btn => btn.addEventListener('click', () => document.querySelector(btn.dataset.scroll).scrollIntoView({ behavior: 'smooth' })));
+  document.querySelectorAll('[data-preset]').forEach(el => el.addEventListener('click', () => applyPreset(el.dataset.preset)));
+  document.querySelectorAll('[data-demo="sql"]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelector('#mvc').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(renderSqlResult, 250);
+  }));
+  document.getElementById('runSqlButton').addEventListener('click', renderSqlResult);
+  document.getElementById('judgeButton').addEventListener('click', renderJudge);
+  document.getElementById('judgeText').addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') renderJudge();
+  });
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderDictionary(tab.dataset.tab);
+  }));
+}
+
+populate();
+renderDictionary('majors');
+initEvents();
+
+  </script>
+</body>
+</html>
