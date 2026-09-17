@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<meta name="generator" content="domain-map">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='5' width='11' height='8' rx='2' fill='%233d63c9'/%3E%3Crect x='18' y='19' width='11' height='8' rx='2' fill='%23d68a2e'/%3E%3Cpath d='M14 9h4v14h0' fill='none' stroke='%23555' stroke-width='2'/%3E%3C/svg%3E">
+<!--__CSS__-->
+</head>
+<body>
+<div id="app">
+  <main id="stage">
+    <div id="viewport" tabindex="-1" aria-label="図の表示領域"></div>
+
+    <header id="brief" class="float-card">
+      <div class="brief-top">
+        <h1 id="brief-title"></h1>
+        <a id="brief-back" class="brief-back" hidden></a>
+      </div>
+      <div class="brief-sub">
+        <span id="brief-client"></span>
+        <span class="brief-sep" id="brief-sep">|</span>
+        <span id="brief-product"></span>
+        <span id="brief-counts" class="brief-counts"></span>
+      </div>
+      <p id="brief-desc" class="brief-desc"></p>
+      <div id="brief-foot" class="brief-foot"></div>
+    </header>
+
+    <section id="demo" class="float-card" hidden aria-live="polite">
+      <div class="demo-head">
+        <span id="demo-title"></span>
+        <button type="button" class="icon-btn" id="demo-close" aria-label="デモを閉じる">×</button>
+      </div>
+      <ol id="demo-steps"></ol>
+    </section>
+
+    <div id="search-results" class="float-card" hidden role="listbox"></div>
+
+    <nav id="dock" class="float-card" aria-label="図の切り替え">
+      <div class="dock-tabs" role="tablist">
+        <button type="button" class="dock-tab" data-view="concept" role="tab"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="8" r="2.2"/><circle cx="12" cy="4" r="2.2"/><circle cx="12" cy="12" r="2.2"/><path d="M6 7.2 10 5M6 8.8l4 2.2"/></svg><span>概念図</span></button>
+        <button type="button" class="dock-tab" data-view="er" role="tab"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6.5h12M6.5 6.5V13"/></svg><span>ER図</span></button>
+        <button type="button" class="dock-tab" data-view="flow" role="tab"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8c1.6-3 3.4-3 5 0s3.4 3 5 0 2.2-2.4 3-1.2"/><circle cx="3.2" cy="8" r=".6"/></svg><span>業務フロー</span></button>
+        <button type="button" class="dock-tab" data-view="screens" role="tab"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6h12M5 9h4"/></svg><span>画面UI</span></button>
+        <button type="button" class="dock-tab" data-view="terms" role="tab"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h7a1.5 1.5 0 0 1 1.5 1.5v9.5H4.5A1.5 1.5 0 0 1 3 12z"/><path d="M5.2 5.6h4M5.2 8h4"/></svg><span>用語</span></button>
+      </div>
+      <span class="dock-sep"></span>
+      <button type="button" class="icon-btn" id="play" aria-label="デモを再生" title="デモを再生"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="play-glyph" d="M5 3.5v9l7-4.5z"/><path class="pause-glyph" d="M5 3.5v9M11 3.5v9"/></svg></button>
+      <label class="dock-search">
+        <input id="search" type="search" placeholder="実体・項目を探す" autocomplete="off" spellcheck="false">
+      </label>
+      <span class="dock-sep"></span>
+      <button type="button" class="icon-btn" id="zoom-out" aria-label="縮小">−</button>
+      <button type="button" class="zoom-value" id="zoom-value" title="全体を表示">100%</button>
+      <button type="button" class="icon-btn" id="zoom-in" aria-label="拡大">+</button>
+    </nav>
+
+    <div id="legend" class="float-card" hidden></div>
+    <div id="hint">ドラッグで移動 ・ ホイールで拡大縮小 ・ % か f で全体 ・ 1〜5で図を切替 ・ / で検索</div>
+  </main>
+
+  <aside id="panel" hidden aria-label="詳細">
+    <button type="button" class="icon-btn panel-close" id="panel-close" aria-label="閉じる">×</button>
+    <div id="panel-body"></div>
+  </aside>
+</div>
+<script id="map-data" type="application/json">__MAP_JSON__</script>
+<!--__JS__-->
+</body>
+</html>

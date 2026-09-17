@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "title": "本・利用者・貸出の地図",
+    "client": "架空の市立図書館",
+    "product": "貸出システム",
+    "description": "見本の定義です。4つの図はすべてこの1つの定義から描いています。",
+    "generatedAt": "2026-09-16",
+    "basis": "見本 (実在しない)"
+  },
+  "layers": [
+    { "id": "catalog", "label": "第1層 蔵書", "short": "蔵書", "color": "blue" },
+    { "id": "member", "label": "第2層 利用者", "short": "利用者", "color": "green" },
+    { "id": "lending", "label": "第3層 貸出", "short": "貸出", "color": "orange" }
+  ],
+  "entities": [
+    {
+      "id": "categories", "name": "分類", "physical": "categories", "layer": "catalog",
+      "summary": "日本十進分類の棚分け。",
+      "fields": [
+        { "name": "分類CD", "physical": "category_code", "type": "string", "key": "PK" },
+        { "name": "分類名", "physical": "name", "type": "string" }
+      ]
+    },
+    {
+      "id": "titles", "name": "書誌", "physical": "titles", "layer": "catalog",
+      "summary": "同じ本の共通情報。冊ごとの情報は蔵書に持つ。",
+      "fields": [
+        { "name": "書誌ID", "physical": "title_id", "type": "uuid", "key": "PK" },
+        { "name": "分類CD", "physical": "category_code", "type": "string", "key": "FK", "ref": "categories" },
+        { "name": "書名", "physical": "title", "type": "string" },
+        { "name": "ISBN", "physical": "isbn", "type": "string", "key": "UQ", "nullable": true, "note": "古い本には無い" }
+      ]
+    },
+    {
+      "id": "copies", "name": "蔵書", "physical": "copies", "layer": "catalog",
+      "summary": "棚にある1冊。",
+      "fields": [
+        { "name": "蔵書ID", "physical": "copy_id", "type": "uuid", "key": "PK" },
+        { "name": "書誌ID", "physical": "title_id", "type": "uuid", "key": "FK", "ref": "titles" },
+        { "name": "状態", "physical": "status", "type": "enum", "values": ["在架", "貸出中", "取置", "修理"] }
+      ]
+    },
+    {
+      "id": "members", "name": "利用者", "physical": "members", "layer": "member",
+      "summary": "貸出カードを持つ人。",
+      "fields": [
+        { "name": "利用者ID", "physical": "member_id", "type": "uuid", "key": "PK" },
+        { "name": "氏名", "physical": "name", "type": "string" },
+        { "name": "連絡先", "physical": "contact", "type": "string", "nullable": true }
+      ]
+    },
+    {
+      "id": "reservations", "name": "予約", "physical": "reservations", "layer": "lending",
+      "summary": "貸出中の本を順番待ちする。",
+      "fields": [
+        { "name": "予約ID", "physical": "reservation_id", "type": "uuid", "key": "PK" },
+        { "name": "書誌ID", "physical": "title_id", "type": "uuid", "key": "FK", "ref": "titles" },
+        { "name": "利用者ID", "physical": "member_id", "type": "uuid", "key": "FK", "ref": "members" },
+        { "name": "順番", "physical": "position", "type": "int" }
+      ]
+    },
+    {
+      "id": "loans", "name": "貸出", "physical": "loans", "layer": "lending",
+      "summary": "1冊を1人へ貸した記録。返却で閉じる。",
+      "fields": [
+        { "name": "貸出ID", "physical": "loan_id", "type": "uuid", "key": "PK" },
+        { "name": "蔵書ID", "physical": "copy_id", "type": "uuid", "key": "FK", "ref": "copies" },
+        { "name": "利用者ID", "physical": "member_id", "type": "uuid", "key": "FK", "ref": "members" },
+        { "name": "返却期限", "physical": "due_on", "type": "date" },
+        { "name": "返却日", "physical": "returned_on", "type": "date", "nullable": true }
+      ]
+    },
+    {
+      "id": "notices", "name": "延滞通知", "physical": "overdue_notices", "layer": "lending",
+      "summary": "期限を過ぎた貸出への連絡。",
+      "fields": [
+        { "name": "通知ID", "physical": "notice_id", "type": "uuid", "key": "PK" },
+        { "name": "貸出ID", "physical": "loan_id", "type": "uuid", "key": "FK", "ref": "loans" },
+        { "name": "送信日時", "physical": "sent_at", "type": "datetime" }
+      ]
+    }
+  ],
+  "relations": [
+    { "from": "categories", "to": "titles", "card": "1:N", "label": "分類する", "via": "category_code" },
+    { "from": "titles", "to": "copies", "card": "1:N", "label": "冊を持つ", "via": "title_id" },
+    { "from": "titles", "to": "reservations", "card": "1:N", "label": "予約される", "via": "title_id" },
+    { "from": "members", "to": "reservations", "card": "1:N", "label": "予約する", "via": "member_id" },
+    { "from": "copies", "to": "loans", "card": "1:N", "label": "貸し出される", "via": "copy_id" },
+    { "from": "members", "to": "loans", "card": "1:N", "label": "借りる", "via": "member_id" },
+    { "from": "loans", "to": "notices", "card": "1:N", "label": "延滞で通知", "via": "loan_id", "optional": true }
+  ],
+  "flow": {
+    "actors": [
+      { "id": "member", "label": "利用者", "color": "green" },
+      { "id": "staff", "label": "司書", "color": "orange" },
+      { "id": "system", "label": "システム", "color": "purple" }
+    ],
+    "steps": [
+      { "id": "search", "actor": "member", "title": "本を探す", "uses": ["titles", "copies"], "screen": "sc_search" },
+      { "id": "reserve", "actor": "member", "title": "予約する", "uses": ["reservations"], "screen": "sc_reserve" },
+      { "id": "lend", "actor": "staff", "title": "貸出手続きをする", "uses": ["loans", "copies"], "screen": "sc_counter" },
+      { "id": "return", "actor": "staff", "title": "返却を受ける", "uses": ["loans"], "screen": "sc_return" },
+      { "id": "overdue", "actor": "system", "title": "期限切れを知らせる", "uses": ["notices", "loans"] }
+    ],
+    "links": [
+      { "from": "search", "to": "reserve", "label": "貸出中なら" },
+      { "from": "search", "to": "lend", "label": "在架なら" },
+      { "from": "reserve", "to": "lend", "label": "取置の連絡" },
+      { "from": "lend", "to": "return" },
+      { "from": "lend", "to": "overdue", "label": "期限切れ", "dashed": true }
+    ]
+  },
+  "screens": [
+    {
+      "id": "sc_search", "no": "01", "title": "蔵書を探す", "route": "search", "layer": "catalog",
+      "summary": "書名や分類で探し、在架か貸出中かを見る。",
+      "does": ["書名・著者・分類で絞る", "在架の冊数を見る"], "uses": ["titles", "copies", "categories"],
+      "mock": [
+        { "input": "書名・著者で検索" },
+        { "chips": ["すべて", "小説", "歴史"], "active": 0 },
+        { "list": [["銀河の図書目録", "在架 2"], ["港町の百年", "貸出中"], ["猫と暮らす", "在架 1"]] }
+      ]
+    },
+    {
+      "id": "sc_reserve", "no": "02", "title": "予約する", "route": "reserve", "layer": "lending",
+      "summary": "貸出中の本の順番待ちに入る。", "does": ["順番を確かめて予約する"], "uses": ["reservations", "members"],
+      "mock": [
+        { "h": "港町の百年", "tag": "貸出中" },
+        { "fields": [["待ち人数", "3人"], ["目安", "2週間"]] },
+        { "buttons": [{ "label": "予約する", "primary": true }, "やめる"] }
+      ]
+    },
+    {
+      "id": "sc_counter", "no": "03", "title": "貸出カウンター", "route": "counter", "layer": "lending",
+      "summary": "カードと本を読み取って貸し出す。", "does": ["カードを読む", "本を読む", "期限を伝える"], "uses": ["loans", "members", "copies"],
+      "mock": [
+        { "fields": [["利用者", "山田 花子"], ["貸出中", "2冊"]] },
+        { "table": { "cols": ["書名", "期限"], "rows": [["銀河の図書目録", "9/30"], ["猫と暮らす", "9/30"]] } },
+        { "buttons": [{ "label": "貸出確定", "primary": true }] }
+      ]
+    },
+    {
+      "id": "sc_return", "no": "04", "title": "返却", "route": "return", "layer": "lending",
+      "summary": "本を読み取って返却にする。予約があれば取置へ回す。", "does": ["本を読む", "予約があれば取置へ"], "uses": ["loans", "reservations"],
+      "mock": [
+        { "input": "本のバーコード" },
+        { "kpi": [["本日の返却", "42"], ["延滞", "3"]] },
+        { "log": ["10:02 銀河の図書目録 返却", "10:05 港町の百年 → 取置"] }
+      ]
+    }
+  ],
+  "screenLinks": [
+    { "from": "sc_search", "to": "sc_reserve", "label": "貸出中" },
+    { "from": "sc_search", "to": "sc_counter", "label": "在架" },
+    { "from": "sc_counter", "to": "sc_return" }
+  ],
+  "demo": {
+    "title": "1冊が借りられて戻るまで",
+    "steps": [
+      { "target": "screen:sc_search" },
+      { "target": "screen:sc_reserve" },
+      { "target": "screen:sc_counter" },
+      { "target": "screen:sc_return" },
+      { "target": "entity:loans", "title": "貸出の記録を見る" }
+    ]
+  }
+}
