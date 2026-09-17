@@ -101,22 +101,27 @@ function fitView(view, animate) {
   setCamera(view, { x, y, k }, animate);
 }
 
-// 最初に開く時の倍率。全体が入るならそのまま、入らないなら「文字が読める」を優先して
-// 左上から見せる (小さい字を縮めるとにじむ。全体は % か f で見る)
-const OPEN_MIN_ZOOM = 0.85;
+// 最初に開く時の倍率。
+// 1. 全体が読める大きさで入るなら、全体を見せる
+// 2. 入らないなら横幅だけ合わせて上から見せる (縦に送る方が、横に送るより読みやすい)
+// 3. 横幅すら読める大きさに入らないなら、下限で止めて左上から
+// 止まっている間は zoom で描き直すので、縮めても文字はにじまない。効くのは「読める大きさか」だけ
+const OPEN_MIN_ZOOM = 0.55;
 function openView(view) {
   if (!view) return;
   const area = safeArea();
   const b = view.bounds;
   const availW = Math.max(120, area.w - area.left - area.right);
   const availH = Math.max(120, area.h - area.top - area.bottom);
-  const fit = Math.min(availW / Math.max(1, b.w), availH / Math.max(1, b.h), 1);
+  const fitW = Math.min(availW / Math.max(1, b.w), 1);
+  const fit = Math.min(fitW, availH / Math.max(1, b.h), 1);
   if (fit >= OPEN_MIN_ZOOM) {
     fitView(view, false);
     return;
   }
-  const k = clamp(OPEN_MIN_ZOOM, ZOOM_MIN, ZOOM_MAX);
-  setCamera(view, { k, x: area.left - b.x * k, y: area.top - b.y * k }, false);
+  const k = clamp(Math.max(fitW, OPEN_MIN_ZOOM), ZOOM_MIN, ZOOM_MAX);
+  const x = b.w * k <= availW ? area.left + (availW - b.w * k) / 2 - b.x * k : area.left - b.x * k;
+  setCamera(view, { k, x, y: area.top - b.y * k }, false);
 }
 
 function focusNode(view, id, animate) {

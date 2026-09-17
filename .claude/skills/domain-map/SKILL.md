@@ -14,7 +14,7 @@ disable-model-invocation: true
 - `map.json` — **地図の正本。**実体・項目・関連・業務の流れ・画面を1つに書いた定義
 - `index.html` — その定義から組み立てた1枚 (外部への通信なし。開けばそのまま動く)
 
-**4つの図はすべて同じ1つの定義から描く。**図ごとに別の絵を描かない。片方だけ直って片方が古い、が起きないこと自体がこの形式の値打ち。
+**図はすべて同じ1つの定義から描く。**図ごとに別の絵を描かない。片方だけ直って片方が古い、が起きないこと自体がこの形式の値打ち。
 
 | 図 | 見せる物 |
 |---|---|
@@ -24,7 +24,7 @@ disable-model-invocation: true
 | 画面UI | 画面の線画と遷移。画面ごとの「すること」と「使うデータ」 |
 | 用語 | 図に出る語を引く頁。**1行の意味と「まぎらわしい点」。**初めて見る人はここから読む |
 
-右の欄は4図で共通で、選んだ物の項目・つながり・出典を出す。下の帯で図の切替・検索・▶での筋書き再生・拡大縮小をする。
+右の欄はどの図でも共通で、選んだ物の項目・つながり・出典を出す。下の帯で図の切替・検索・▶での筋書き再生・拡大縮小をする。
 
 ## 規律 (先に読む)
 
@@ -77,13 +77,15 @@ $ARGUMENTS が対象。空なら直前の会話で頼まれた物を対象にす
 **C# で prefix が役割を名乗る repository なら、項目と値は手で書かない。**実体に `code` で型・enum・DDLの表を結びつけ、コードから作る。人が書くのは「どれを載せるか」「名前と説明」「関連の言葉」だけにする。
 
 ```bash
-python .claude/skills/domain-map/scripts/refresh_from_csharp.py .doc/<名前>/map.json --src src           # 差分を見る
-python .claude/skills/domain-map/scripts/refresh_from_csharp.py .doc/<名前>/map.json --src src --write   # 書き戻す
+python .claude/skills/domain-map/scripts/refresh_from_csharp.py .doc/<名前>/map.json --src src                      # 差分を見る
+python .claude/skills/domain-map/scripts/refresh_from_csharp.py .doc/<名前>/map.json --src src --screens            # 画面の増減も見る
+python .claude/skills/domain-map/scripts/refresh_from_csharp.py .doc/<名前>/map.json --src src --screens --write    # 書き戻す
 ```
 
 - 項目の並び・型・enum の値はコードが正。人の書いた名前と説明は物理名で引き当てて残る
 - コードにだけある項目は「未命名」で足される。**意味は code の comment・読み書きしている所を開いてから書く** (推測で名付けない)
 - 宣言だけで読み書きする所が無い値は「未使用」が付く
+- **画面の一覧も code から突き合わせる。**`meta.screenSource` に「画面を登録している所」の探し方を書くと、`--screens` で増減が出る。足すのは題と出典だけで、説明・すること・線画は人が書く。登録 button ではない画面には `manual: true` を付ける (実測 2026-09-18: 2日前に作った地図に、新しい「仕事の地図」画面が入っていなかった)
 - ソースは正規表現で読むので Visualizer を起動しなくてよい。`Vo_`・`Inf_` の宣言は、独立に数えたプロパティ数と一致することを確かめてある (実測 2026-09-18: 2,324件中2,324件)
 
 根拠: 実測 2026-09-18。手で書いた auto_work の地図 (09-16) にコードから更新を当てると、2日で増えた項目が15件出た (trigger の `wake_glob`・workflow の `runners`・実行結果の `brainRevision` など)。手書きの項目は書いた日から古くなる。
@@ -105,12 +107,14 @@ python .claude/skills/domain-map/scripts/check_words.py .doc/<名前>/map.json -
 ### 4. 配置を探す
 
 ```bash
-node .claude/skills/domain-map/scripts/layout.mjs .doc/<名前>/map.json --write
+node .claude/skills/domain-map/scripts/layout.mjs .doc/<名前>/map.json --write --er
 ```
 
 箱の位置 (`at`) を、線の交差・長さ・同じ層 (色) のまとまりで点を付けて探し、定義へ書き込む。業務と画面は筋書きの順があるので既定では動かさない (`--flow` `--screens` で探す)。
 開くたびに探すと表示が遅くなるので、配置は定義に書いて図はそれを読むだけにしている。
-根拠: 実測 2026-09-18。手で置いた auto_work の地図は 概念図39・ER図40交差、探索後は 5・19交差。開くたびに探す版は表示が 0.2秒 → 1.6秒 に延びた。
+
+**`--er` を付けると ER図だけ別に探して `erAt` へ書く。**ER図の箱は項目の数だけ縦に伸びるので、マス目の数ではなく**列の幅と行の高さを実寸で積んだ面積**で点を付ける。画面は横長なので、同じ面積なら横長に置いた方を採る。
+根拠: 実測 2026-09-18。手で置いた auto_work の地図は 概念図39・ER図40交差、探索後は 5・19交差。ER図は 2754x2392px あり 1584px の画面から 1206px はみ出していた。実寸で探し直すと 1551x1130px (はみ出し 3px) になった。交差は19→22に増えたが、**画面に入らない図は交差を数える前に読めない。**開くたびに探す版は表示が 0.2秒 → 1.6秒 に延びた。
 
 ### 5. 組み立てる
 
@@ -122,7 +126,7 @@ python .claude/skills/domain-map/scripts/build.py .doc/<名前>/map.json
 
 ### 6. 画面で確かめる (省略しない)
 
-**「build が通った」は確かめたことにならない。**4つの図を実際に描かせて、目で見る。
+**「build が通った」は確かめたことにならない。**図を全部実際に描かせて、目で見る。
 
 - 開き方: browser の pane で `index.html` を開く。file を直接開けない時は、その folder で静的serverを1本立てて `http://127.0.0.1:<port>/` を見る
 - 撮って見るなら headless の chrome に `--screenshot` と `--window-size=1600,1000` を渡す (chrome の実行fileの場所は環境で違う)
@@ -130,8 +134,9 @@ python .claude/skills/domain-map/scripts/build.py .doc/<名前>/map.json
 
 見る所:
 
-1. 4図とも**線が箱を横切っていないか**、札 (関連の言葉) が読めるか。用語の頁が最後まで並んでいるか
+1. どの図でも**線が箱を横切っていないか**、札 (関連の言葉) が読めるか。用語の頁が最後まで並んでいるか
 2. 交差が多い・遠回りの線が多いなら 4 の探索をやり直すか、その実体の `at: [列, 行]` を手で直す
+   - **まず画面に入っているかを見る。**入らない図は交差の数より先に読めない
 3. 左下の凡例が**色の意味**を言えているか (層に `note` を書く)。押すとその色だけ残る
 4. 箱に**触れると説明が出る**。`summary` が空の実体・業務・画面は、触れても何も出ない
 5. 右の欄が**項目・つながり・出典**まで出ているか

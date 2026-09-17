@@ -16,6 +16,7 @@
 | `basis` | 任意 | **どの commit・いつまでの実測から作ったか。**地図が写しである印 |
 | `back` | 任意 | `{ "label": "← 戻る", "href": "../" }` 左上に出る戻り口 |
 | `words` | 任意 | 言葉の点検表。図には出ない。`check_words.py` が読む |
+| `screenSource` | 任意 | 画面を登録している所の探し方。`refresh_from_csharp.py --screens` が読む |
 
 実体・関連・項目の件数は定義から数えて出るので書かない。
 
@@ -32,6 +33,20 @@
 - `avoid` — **使わないと決めた語と、その理由。**理由は出典 (裁定・規約の path) を書く
 
 この表に無くても、**repository に1件も出てこない語**は `check_words.py` が自動で挙げる。
+
+### meta.screenSource (画面の探し方)
+
+```json
+"screenSource": {
+  "files": "**/Boot_Visualizer*.cs",
+  "title": "title\\s*=\\s*\"(?P<title>[^\"]+)\"[\\s\\S]{0,700}?(?:table\\w*Func|graph\\w*Func)"
+}
+```
+
+- `files` — `--src` からの glob
+- `title` — 題を取る正規表現。名前付きの組 `(?P<title>…)` があればそれ、無ければ1つ目の組。**JSON なので `\` は2つ重ねる**
+- **「画面」だけに当たる形にする。**上の例で後ろに `tableFunc|graphFunc` を要求しているのは、同じ書き方の menu の操作 (再認証・DB初期化) を除くため
+- 登録から拾えない画面 (別のアプリ・画面の一部) には `manual: true` を付ける。突き合わせから外れる
 
 ## layers (層)
 
@@ -75,7 +90,7 @@
 | `physical` | 任意 | 実装での名前 (table名・path)。長いと箱で省略されるので30字程度まで |
 | `layer` | 任意 | `layers` の id |
 | `summary` | 任意 | 1〜2文。「これは何を表す物か」。**箱に触れると出る** |
-| `at` / `erAt` | 任意 | `[列, 行]` の格子位置。`scripts/layout.mjs` が探して書く。省くと簡易な自動配置。`erAt` は ER図だけ別位置にしたい時 |
+| `at` / `erAt` | 任意 | `[列, 行]` の格子位置。`scripts/layout.mjs` が探して書く。省くと簡易な自動配置。`erAt` は ER図だけ別位置 (`--er` が箱の高さを見て書く) |
 | `source` | 任意 | 文字列か文字列の配列。**開いて確かめた `file:行` だけ** |
 | `notes` | 任意 | 補足の行 |
 | `fields` | 任意 | 項目 (下) |

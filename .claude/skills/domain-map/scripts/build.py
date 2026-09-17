@@ -191,7 +191,20 @@ def validate(m: dict) -> tuple[list[str], list[str]]:
     cell_clash("ER図", entities, "erAt", "at")
     cell_clash("業務フロー", steps, "at")
     cell_clash("画面UI", screens, "at")
-    return errors, warnings
+    # 項目が別の実体を指しているのに、関連 (線) が引かれていない組を挙げる。
+    # 線の言葉は人が決める物なので、足しはせず「引き忘れていないか」だけ言う。
+    # 根拠: 実測 2026-09-18。39本の関連はすべて手書きで、項目の ref との突き合わせをしていなかった。
+    unlined: list[str] = []
+    linked = {(r.get("from"), r.get("to")) for r in m.get("relations", [])}
+    linked |= {(b, a) for a, b in linked}
+    for entity_id, entity in entities.items():
+        for field in entity.get("fields", []):
+            target = str(field.get("ref") or "").split(".")[0]
+            if target and target in entities and target != entity_id and (target, entity_id) not in linked:
+                unlined.append(f"entities.{entity_id}.{field.get('physical') or field.get('name')}: "
+                               f"'{target}' を指しているのに関連が引かれていません")
+
+    return errors, warnings, unlined
 
 
 def render(m: dict) -> str:
@@ -213,6 +226,7 @@ def main() -> int:
     parser.add_argument("definition", type=Path)
     parser.add_argument("-o", "--out", type=Path)
     parser.add_argument("--check", action="store_true", help="検査だけして書かない")
+    parser.add_argument("--refs", action="store_true", help="項目が指しているのに線の無い組を一覧する")
     args = parser.parse_args()
 
     try:
@@ -221,9 +235,15 @@ def main() -> int:
         print(f"定義を読めません: {error}")
         return 1
 
-    errors, warnings = validate(m)
+    errors, warnings, unlined = validate(m)
     for warning in warnings:
         print(f"warn  {warning}")
+    if unlined:
+        if args.refs:
+            for line in unlined:
+                print(f"ref   {line}")
+        else:
+            print(f"項目の参照で線の無い組: {len(unlined)} (--refs で一覧)")
     for error in errors:
         print(f"error {error}")
     entities = m.get("entities", [])

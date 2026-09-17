@@ -3,7 +3,7 @@
 // 使い方:
 //   node layout.mjs <map.json>                 探すだけ (点を表示)
 //   node layout.mjs <map.json> --write         実体の at を書き込む
-//   node layout.mjs <map.json> --write --flow --screens   業務と画面の at も探し直す
+//   node layout.mjs <map.json> --write --er --flow --screens  ER・業務・画面の配置も探す
 //
 // 開くたびに探すと、24実体でページの表示が 0.2秒 → 1.6秒 に延びた (実測 2026-09-18)。
 // 配置は定義の一部として一度だけ決め、図はそれを読むだけにする。
@@ -21,7 +21,7 @@ vm.runInContext(readFileSync(join(here, '..', 'assets', 'js', '20_layout.js'), '
 
 // 格子の上で箱を入れ替え・移動する焼きなまし。評価は箱の中心どうしの線分で近似する
 // (経路を実際に引くより桁違いに軽い)。動かした箱に触れる項だけを引き直す差分評価。
-function optimize(cells, links, seed, groupOf) {
+function optimize(cells, links, seed, groupOf, sizeOf) {
   const ids = [...cells.keys()];
   const pos = new Map(ids.map((id) => [id, cells.get(id).slice()]));
   const edges = links.filter(([a, b]) => a !== b && pos.has(a) && pos.has(b));
@@ -53,7 +53,23 @@ function optimize(cells, links, seed, groupOf) {
     const dx = Math.abs(pa[0] - pb[0]), dy = Math.abs(pa[1] - pb[1]);
     return dx * 1.2 + dy + (dx === 0 && dy > 1 ? 3 : 0) + (pa[0] > pb[0] ? 1.5 : 0);
   };
-  const areaCost = () => new Set(ids.map((id) => pos.get(id)[0])).size * new Set(ids.map((id) => pos.get(id)[1])).size * 0.15;
+  // ER図の表は項目の数だけ縦に伸びる。格子のマス目で数えると、実際は縦長の図を正方形だと思って
+  // 置いてしまう。大きさを渡された時は、列の幅と行の高さを実寸で積んで面積を見る
+  // 根拠: 実測 2026-09-18。24表のER図は 2754x2392px になり、1584px の画面から 1206px はみ出した
+  const areaCost = sizeOf
+    ? () => {
+      const colW = new Map(), rowH = new Map();
+      for (const id of ids) {
+        const [c, r] = pos.get(id), box = sizeOf(id);
+        colW.set(c, Math.max(colW.get(c) || 0, box.w));
+        rowH.set(r, Math.max(rowH.get(r) || 0, box.h));
+      }
+      const w = [...colW.values()].reduce((a, b) => a + b, 0) + colW.size * 120;
+      const h = [...rowH.values()].reduce((a, b) => a + b, 0) + rowH.size * 64;
+      // 画面は横長なので、同じ面積なら横長に置いた方が読める。縦の伸びを重く見る
+      return (w * h) / 60000 + Math.max(0, h - w * 0.62) / 90;
+    }
+    : () => new Set(ids.map((id) => pos.get(id)[0])).size * new Set(ids.map((id) => pos.get(id)[1])).size * 0.15;
   // 同じ層 (色) の箱どうしは近くに置く。色で読む図なので、交差が同じなら固まっている方を採る
   const cohesionCost = (x, y) => {
     const group = groupOf(x);
@@ -151,12 +167,12 @@ function starts(items, links, sort) {
   return fromAt.size && items.some((item) => Array.isArray(item.at)) ? [['at', fromAt], ['層分け', layered]] : [['層分け', layered]];
 }
 
-function place(label, items, links, sort, groupOf = () => null) {
+function place(label, items, links, sort, groupOf = () => null, sizeOf = null) {
   if (items.length < 2) return null;
   let chosen = null;
   for (const [name, cells] of starts(items, links, sort)) {
     for (const seed of [0x2f6e2b1, 0x51ed27, 0x9e3779b1, 0x7f4a7c15]) {
-      const result = optimize(cells, links, seed, groupOf);
+      const result = optimize(cells, links, seed, groupOf, sizeOf);
       console.log(`${label}: 下書き=${name} 種=${seed.toString(16)} 点=${result.cost}`);
       if (!chosen || result.cost < chosen.cost) chosen = { ...result, name, seed };
     }
@@ -175,7 +191,7 @@ function dump(value, indent = 0) {
 
 const [file, ...flags] = process.argv.slice(2);
 if (!file) {
-  console.error('使い方: node layout.mjs <map.json> [--write] [--flow] [--screens]');
+  console.error('使い方: node layout.mjs <map.json> [--write] [--er] [--flow] [--screens]');
   process.exit(1);
 }
 const map = JSON.parse(readFileSync(file, 'utf8'));
@@ -185,8 +201,19 @@ const entityIndex = new Map(entities.map((entity, i) => [entity.id, i]));
 const entityCells = place('実体', entities, (map.relations || []).map((r) => [r.from, r.to]),
   (id) => (layerIndex.get(entities[entityIndex.get(id)].layer) ?? 99) * 1000 + entityIndex.get(id),
   (id) => entities[entityIndex.get(id)].layer);
-const apply = (items, cells) => { if (cells) for (const item of items) { item.at = cells.get(item.id); delete item.erAt; } };
+const apply = (items, cells, key = 'at') => { if (cells) for (const item of items) item[key] = cells.get(item.id); };
+for (const entity of entities) delete entity.erAt;
 apply(entities, entityCells);
+// ER図は同じ実体でも箱の形が違う (項目の数だけ縦に伸びる) ので、別に探して erAt へ書く
+if (flags.includes('--er')) {
+  const erSize = (id) => {
+    const entity = entities[entityIndex.get(id)];
+    return { w: 300, h: 44 + (entity.fields || []).length * 24 };
+  };
+  apply(entities, place('ER', entities.map((e) => ({ ...e, at: e.erAt || e.at })), (map.relations || []).map((r) => [r.from, r.to]),
+    (id) => (layerIndex.get(entities[entityIndex.get(id)].layer) ?? 99) * 1000 + entityIndex.get(id),
+    (id) => entities[entityIndex.get(id)].layer, erSize), 'erAt');
+}
 if (flags.includes('--flow') && map.flow) {
   const steps = map.flow.steps || [];
   const index = new Map(steps.map((step, i) => [step.id, i]));

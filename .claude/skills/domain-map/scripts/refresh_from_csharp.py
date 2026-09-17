@@ -199,15 +199,58 @@ def dump(value, indent: int = 0) -> str:
     return "{\n" + ",\n".join(f"{inner}{json.dumps(k, ensure_ascii=False)}: {dump(v, indent + 2)}" for k, v in value.items()) + "\n" + pad + "}"
 
 
+# 画面の一覧は手で書くと、画面が増えた時に気づけない。code の登録から拾って差分を出す。
+# 何の型で登録するかは repository ごとに違うので、探し方は定義の meta.screenSource に書かせる。
+#   "screenSource": { "files": "src/**/Boot_Visualizer*.cs", "title": "title = \"(?P<title>[^\"]+)\"" }
+# 足すのは title と出典だけ。説明・すること・線画は人が書く物なので作らない。
+# 根拠: 実測 2026-09-18。新しい「仕事の地図」画面 (Boot_Visualizer__TaskMap) が
+# 09-16 に作った地図の12画面に入っておらず、2日で古くなっていた。
+def check_screens(definition: dict, src: Path, write: bool) -> int:
+    spec = definition.get("meta", {}).get("screenSource")
+    if not spec:
+        print("meta.screenSource が無いので画面は見ない")
+        return 0
+    title_re = re.compile(spec.get("title", r'title\s*=\s*"(?P<title>[^"]+)"'))
+    root = src if src.is_dir() else src.parent
+    found: dict[str, str] = {}
+    for path in sorted(root.glob(spec.get("files", "**/*.cs").replace("src/", "", 1))):
+        try:
+            text = path.read_text(encoding="utf-8-sig", errors="replace")
+        except OSError:
+            continue
+        for match in title_re.finditer(text):
+            title = match.group("title") if "title" in (title_re.groupindex or {}) else match.group(1)
+            found.setdefault(title, f"{path.as_posix()}")
+    screens = definition.setdefault("screens", [])
+    known = {screen.get("title") for screen in screens}
+    added = [t for t in found if t not in known]
+    missing = [s.get("title") for s in screens if s.get("title") not in found and not s.get("manual")]
+    for title in added:
+        print(f"  code にあって地図に無い画面: {title} ({found[title]})")
+    for title in missing:
+        print(f"  地図にあって code に無い画面: {title} (消えたか、名前が変わったか、探し方が合っていない)")
+    print(f"画面: code {len(found)} / 地図 {len(screens)} / 足りない {len(added)} / 余っている {len(missing)}")
+    if write:
+        for title in added:
+            screens.append({"id": "sc_auto_" + str(len(screens) + 1), "title": title, "auto": True,
+                            "summary": "", "source": found[title]})
+        if added:
+            print(f"  {len(added)} 画面を足した (説明・すること・線画は人が書く)")
+    return len(added) + len(missing)
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="地図の項目と値を C# の宣言から更新する")
     parser.add_argument("definition", type=Path)
     parser.add_argument("--src", type=Path, required=True)
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--screens", action="store_true", help="画面の一覧も code の登録と突き合わせる")
     args = parser.parse_args()
     src = args.src.resolve()
     definition = json.loads(args.definition.read_text(encoding="utf-8"))
+    if args.screens:
+        check_screens(definition, src, args.write)
     facts = read_facts(src)
     bound = [e for e in definition.get("entities", []) if e.get("code")]
     reports = [refresh_entity(entity, facts, src) for entity in bound]
