@@ -1,5 +1,5 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
 
 	let approvals = $state([
 		{ id: 'AP-2201', applicant: '山田 太郎', category: '旅費交通費', amount: 18400, status: '申請中', date: '2026-04-24' },

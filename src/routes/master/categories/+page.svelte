@@ -1,12 +1,12 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
 	import {
 		addMasterCategory,
 		categoryMaster,
 		removeMasterCategory,
 		updateMasterCategory,
-	} from '$lib/masterCategories.svelte';
-	import { sortedCategories, type MasterCategory } from '$lib/masterCategories';
+	} from '$lib/p050_master_categories.svelte';
+	import { sortedCategories, type MasterCategory } from '$lib/p070_master_categories';
 
 	let form = $state({
 		name: '',

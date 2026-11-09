@@ -1,12 +1,12 @@
 use axum::routing::{get, post};
 use axum::Router;
 
-use crate::m01_models::AppState;
+use crate::p010_models::AppState;
 
-mod m05_api_init_seed;
-mod m05_api_search_text;
-mod m05_api_table_rows;
-mod m05_api_tables;
+mod p010_init_seed;
+mod p020_search_text;
+mod p030_table_rows;
+mod p040_tables;
 
 /// すべての API ルートをまとめた axum の `Router` を構築する。
 ///
@@ -19,15 +19,15 @@ mod m05_api_tables;
 /// すべてのハンドラに [`AppState`] が共有状態として渡される。
 pub fn build_api_router(state: AppState) -> Router {
     Router::new()
-        .route("/api/sqlite/init-seed", post(m05_api_init_seed::api_init_seed))
-        .route("/api/sqlite/tables", get(m05_api_tables::api_tables))
+        .route("/api/sqlite/init-seed", post(p010_init_seed::api_init_seed))
+        .route("/api/sqlite/tables", get(p040_tables::api_tables))
         .route(
             "/api/sqlite/table/{table}",
-            get(m05_api_table_rows::api_table_rows),
+            get(p030_table_rows::api_table_rows),
         )
         .route(
             "/api/sqlite/search-text",
-            post(m05_api_search_text::api_search_text),
+            post(p020_search_text::api_search_text),
         )
         .with_state(state)
 }

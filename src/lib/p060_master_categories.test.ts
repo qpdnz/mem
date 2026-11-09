@@ -7,7 +7,7 @@ import {
 	sortedCategories,
 	updateCategoryRow,
 	type MasterCategory,
-} from './masterCategories';
+} from './p070_master_categories';
 
 describe('isMasterCategory', () => {
 	it('有効な区分オブジェクトを認める', () => {

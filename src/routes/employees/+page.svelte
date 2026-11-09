@@ -1,6 +1,6 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
-	import { cost, hourlyRateYen } from '$lib/employees.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
+	import { cost, hourlyRateYen } from '$lib/p020_employees.svelte';
 
 	const totalCost = $derived.by(() => cost.employees.reduce((sum, e) => sum + e.monthlyCostYen, 0));
 	const avgHours = $derived.by(() => {

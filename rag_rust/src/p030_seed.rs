@@ -3,9 +3,9 @@ use std::path::PathBuf;
 
 use rusqlite::{Connection, params};
 
-use crate::m01_models::SeedHistoryRecord;
-use crate::m02_db::{db_conn, now_iso};
-use crate::m04_embedding::build_query_embedding_with_sudachi;
+use crate::p010_models::SeedHistoryRecord;
+use crate::p020_db::{db_conn, now_iso};
+use crate::p040_embedding::build_query_embedding_with_sudachi;
 
 /// デモ用のサンプルデータを DB に投入する（既存データは全削除してから入れ直す）。
 ///

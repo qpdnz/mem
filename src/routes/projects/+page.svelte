@@ -1,5 +1,5 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
 
 	const projects = [
 		{ code: 'PRJ-1042', name: '販売管理刷新', owner: '開発部', budget: 5600000, spent: 3120000, status: '進行中' },

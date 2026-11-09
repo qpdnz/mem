@@ -10,7 +10,7 @@
 		type Icon,
 	} from 'lucide-svelte';
 	import { goto } from '$app/navigation';
-	import { logout } from '$lib/auth.svelte';
+	import { logout } from '$lib/p010_auth.svelte';
 
 	type NavItem = {
 		href: string;

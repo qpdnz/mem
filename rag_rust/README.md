@@ -101,8 +101,9 @@ Sudachi 辞書は WorksApplications/SudachiDict の配布物です。ライセ�
 
 ## 実装ルール
 
-- `src` 配下の機能分割は `mNN_<role>.rs` 形式を使う（例: `m01_models.rs`）。
-- `NN` は 2 桁連番で、責務の小さい順に割り当てる。
+- ファイル名は `kiln_studio/_rule/10_writing/source_layout.md#ソースファイルの命名` に従う。製品固有は `p010_models.rs`、製品仕様に依存しない共通実装は `c010read.rs` の形にする。
+- 番号は同じフォルダー・同じ英字の中で管理し、言語・拡張子をまたいで重複させない。番号と責務・単語・実行順を固定対応させない。
+- `main.rs` はCargoの標準binary入口、`m05_api/mod.rs` はRustの標準module入口なので名前を保つ。通常moduleはファイル名と `mod`・`use` を一緒に更新し、`#[path]` で旧名へ迂回しない。
 - `main.rs` は起動処理と配線（ルーティング組み立て）に限定する。
 - 機能追加時は既存モジュールへ責務単位で追加し、`main.rs` にロジックを戻さない。
 そもそもこのプロジェクトに変換ルールどういうタグ付けがあるかないからわかりづらくなっているの?
@@ -124,7 +125,7 @@ Web画面の「初期化 + サンプル投入」を実行してください。
 
 <!-- raw_inquiries -> chunks の変換ルール -->
 - 現状コードでは `raw_inquiries` から `chunks` へ変換して保存する処理は未実装。
-- `chunks` への投入は seed 処理（`src/m03_seed.rs`）からのみ行う。
+- `chunks` への投入は seed 処理（`src/p030_seed.rs`）からのみ行う。
 
 ## Sudachi 連携
 
@@ -194,6 +195,6 @@ cargo run
 
 ### Sudachi を使っている場所
 
-- クエリ検索時の埋め込み生成呼び出し: `src/m05_api/m05_api_search_text.rs`
-- Seed時の埋め込み生成呼び出し: `src/m03_seed.rs`
-- Sudachi 本体のトークン化実装: `src/m04_embedding.rs` の `try_sudachi_tokens`
+- クエリ検索時の埋め込み生成呼び出し: `src/m05_api/p020_search_text.rs`
+- Seed時の埋め込み生成呼び出し: `src/p030_seed.rs`
+- Sudachi 本体のトークン化実装: `src/p040_embedding.rs` の `try_sudachi_tokens`

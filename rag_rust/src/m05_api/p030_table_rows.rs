@@ -4,8 +4,8 @@ use axum::Json;
 use rusqlite::params;
 use serde_json::{json, Value};
 
-use crate::m01_models::{AppState, TableQuery};
-use crate::m02_db::{db_conn, internal_err, row_to_json};
+use crate::p010_models::{AppState, TableQuery};
+use crate::p020_db::{db_conn, internal_err, row_to_json};
 
 /// `GET /api/sqlite/table/{table}` — 指定したテーブルの行を取得する。
 ///

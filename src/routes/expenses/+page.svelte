@@ -1,6 +1,6 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
-	import { expenseForm, expenses, removeExpense, submitExpense } from '$lib/expenses.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
+	import { expenseForm, expenses, removeExpense, submitExpense } from '$lib/p030_expenses.svelte';
 
 	const totalYen = $derived.by(() => expenses.rows.reduce((sum, row) => sum + row.amountYen, 0));
 	const latestDate = $derived.by(() => {

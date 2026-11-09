@@ -1,19 +1,19 @@
-mod m01_models;
-mod m02_db;
-mod m03_seed;
-mod m04_embedding;
+mod p010_models;
+mod p020_db;
+mod p030_seed;
+mod p040_embedding;
 mod m05_api;
-mod m06_query_normalizer;
+mod p050_query_normalizer;
 
 // `std` は Rust 標準ライブラリ（.NET の BCL に近い）。
 use std::path::PathBuf;
 use std::sync::Arc;
 
-// `m01_models` / `m02_db` / `m05_api` はこのプロジェクト内のモジュール。
-use m01_models::AppState;
-use m02_db::init_db;
+// `p010_models` / `p020_db` / `m05_api` はこのプロジェクト内のモジュール。
+use p010_models::AppState;
+use p020_db::init_db;
 use m05_api::build_api_router;
-use m06_query_normalizer::load_query_synonyms;
+use p050_query_normalizer::load_query_synonyms;
 
 // `tower_http` は外部クレート（NuGet パッケージ相当）。
 // 静的ファイル配信用のサービスを提供する。

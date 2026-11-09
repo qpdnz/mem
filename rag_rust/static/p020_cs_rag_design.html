@@ -245,8 +245,8 @@
         <h1>オペレーター検索ツール 設計書</h1>
         <p>顧客対応中のオペレーターが「過去の対応・FAQ・マニュアル」を素早く引き、検索履歴を再利用できる RAG ツールの設計。</p>
         <div class="nav">
-          <a href="/data-flow.html">← データフロー早見表</a>
-          <a href="/chunking-rules.html">← chunks/documents ルール案</a>
+          <a href="/p030_data_flow.html">← データフロー早見表</a>
+          <a href="/p010_chunking_rules.html">← chunks/documents ルール案</a>
         </div>
       </section>
 
@@ -528,7 +528,7 @@
 
         <h3>⑥〜⑩ 索引側</h3>
         <p class="lead">
-          documents / chunks / embeddings / chunks_fts は <a href="/chunking-rules.html">chunks/documents ルール案</a> に準拠。<br />
+          documents / chunks / embeddings / chunks_fts は <a href="/p010_chunking_rules.html">chunks/documents ルール案</a> に準拠。<br />
           tag_dictionary は「正式タグ + 別名(揺れ)」を管理するマスタテーブル。検索時に別名を正式タグに寄せて使う。
         </p>
 
@@ -901,11 +901,11 @@
       <section class="panel">
         <h2>関連ページ</h2>
         <ul>
-          <li><a href="/data-flow.html">データフロー早見表</a> — 既存実装ベースの最小説明</li>
-          <li><a href="/chunking-rules.html">chunks/documents の作り方ルール案</a> — 索引側(⑥⑦)のルール</li>
-          <li class="mono">src/m02_db.rs — 現在のスキーマ(本設計の⑥⑦⑧に相当する部分のみ実装済み)</li>
-          <li class="mono">src/m05_api/m05_api_search_text.rs — 検索 API(現在は履歴を残していない)</li>
-          <li class="mono">src/m04_embedding.rs — Sudachi ベース埋め込み(マスク処理にも Sudachi を流用予定)</li>
+          <li><a href="/p030_data_flow.html">データフロー早見表</a> — 既存実装ベースの最小説明</li>
+          <li><a href="/p010_chunking_rules.html">chunks/documents の作り方ルール案</a> — 索引側(⑥⑦)のルール</li>
+          <li class="mono">src/p020_db.rs — 現在のスキーマ(本設計の⑥⑦⑧に相当する部分のみ実装済み)</li>
+          <li class="mono">src/m05_api/p020_search_text.rs — 検索 API(現在は履歴を残していない)</li>
+          <li class="mono">src/p040_embedding.rs — Sudachi ベース埋め込み(マスク処理にも Sudachi を流用予定)</li>
         </ul>
       </section>
     </div>

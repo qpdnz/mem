@@ -1,5 +1,5 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
 	import {
 		addEmployee,
 		cost,
@@ -8,7 +8,7 @@
 		sumMonthlyCostYen,
 		updateEmployee,
 		type Employee,
-	} from '$lib/employees.svelte';
+	} from '$lib/p020_employees.svelte';
 
 	let form = $state({
 		name: '',

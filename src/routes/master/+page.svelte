@@ -1,5 +1,5 @@
 <script lang="ts">
-	import KeihiSidebar from '$lib/components/KeihiSidebar.svelte';
+	import KeihiSidebar from '$lib/components/p010_keihi_sidebar.svelte';
 
 	const modules = [
 		{

@@ -1,13 +1,13 @@
 // 地図の箱の配置 (at) を、線の交差と長さが減るように探して定義へ書き込む。
 //
 // 使い方:
-//   node layout.mjs <map.json>                 探すだけ (点を表示)
-//   node layout.mjs <map.json> --write         実体の at を書き込む
-//   node layout.mjs <map.json> --write --er --flow --screens  ER・業務・画面の配置も探す
+//   node p040_layout.mjs <map.json>                 探すだけ (点を表示)
+//   node p040_layout.mjs <map.json> --write         実体の at を書き込む
+//   node p040_layout.mjs <map.json> --write --er --flow --screens  ER・業務・画面の配置も探す
 //
 // 開くたびに探すと、24実体でページの表示が 0.2秒 → 1.6秒 に延びた (実測 2026-09-18)。
 // 配置は定義の一部として一度だけ決め、図はそれを読むだけにする。
-// 下書きの層分け (autoCells) は描画側の assets/js/20_layout.js をそのまま読み込み、二重に持たない。
+// 下書きの層分け (autoCells) は描画側の assets/js/p020_layout.js をそのまま読み込み、二重に持たない。
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -17,7 +17,7 @@ import vm from 'node:vm';
 const here = dirname(fileURLToPath(import.meta.url));
 const layoutContext = {};
 vm.createContext(layoutContext);
-vm.runInContext(readFileSync(join(here, '..', 'assets', 'js', '20_layout.js'), 'utf8') + '\nthis.autoCells = autoCells;', layoutContext);
+vm.runInContext(readFileSync(join(here, '..', 'assets', 'js', 'p020_layout.js'), 'utf8') + '\nthis.autoCells = autoCells;', layoutContext);
 
 // 格子の上で箱を入れ替え・移動する焼きなまし。評価は箱の中心どうしの線分で近似する
 // (経路を実際に引くより桁違いに軽い)。動かした箱に触れる項だけを引き直す差分評価。
@@ -191,7 +191,7 @@ function dump(value, indent = 0) {
 
 const [file, ...flags] = process.argv.slice(2);
 if (!file) {
-  console.error('使い方: node layout.mjs <map.json> [--write] [--er] [--flow] [--screens]');
+  console.error('使い方: node p040_layout.mjs <map.json> [--write] [--er] [--flow] [--screens]');
   process.exit(1);
 }
 const map = JSON.parse(readFileSync(file, 'utf8'));

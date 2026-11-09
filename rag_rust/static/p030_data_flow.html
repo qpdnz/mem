@@ -181,8 +181,8 @@
         <h1>RAG Rust データフロー早見表</h1>
         <p>どのテーブルがあり、どう変換され、どのファイルで処理しているかを1ページで確認できます。</p>
         <p style="margin-top: 8px; font-size: 13px;">
-          関連: <a href="/chunking-rules.html" style="color:#a9d0ff; text-decoration: underline;">chunks / documents の作り方ルール案 →</a>
-          <a href="/cs-rag-design.html" style="color:#a9d0ff; text-decoration: underline; margin-left: 10px;">お客様対応RAG 新規設計書 →</a>
+          関連: <a href="/p010_chunking_rules.html" style="color:#a9d0ff; text-decoration: underline;">chunks / documents の作り方ルール案 →</a>
+          <a href="/p020_cs_rag_design.html" style="color:#a9d0ff; text-decoration: underline; margin-left: 10px;">お客様対応RAG 新規設計書 →</a>
         </p>
       </section>
 
@@ -202,31 +202,31 @@
               <td><span class="tag">documents</span></td>
               <td>文書メタ情報</td>
               <td class="mono">id, title, category, visibility, status</td>
-              <td class="mono">src/m02_db.rs (CREATE TABLE documents)</td>
+              <td class="mono">src/p020_db.rs (CREATE TABLE documents)</td>
             </tr>
             <tr>
               <td><span class="tag">chunks</span></td>
               <td>検索対象の本文断片</td>
               <td class="mono">id, document_id, chunk_index, content</td>
-              <td class="mono">src/m02_db.rs (CREATE TABLE chunks)</td>
+              <td class="mono">src/p020_db.rs (CREATE TABLE chunks)</td>
             </tr>
             <tr>
               <td><span class="tag">embeddings</span></td>
               <td>チャンクのベクトル</td>
               <td class="mono">id, chunk_id, embedding_model, embedding_json</td>
-              <td class="mono">src/m02_db.rs (CREATE TABLE embeddings)</td>
+              <td class="mono">src/p020_db.rs (CREATE TABLE embeddings)</td>
             </tr>
             <tr>
               <td><span class="tag">raw_inquiries</span></td>
               <td>問い合わせ生文・サニタイズ文の保管想定</td>
               <td class="mono">id, raw_text, sanitized_text, detected_pii_json</td>
-              <td class="mono">src/m02_db.rs (CREATE TABLE raw_inquiries)</td>
+              <td class="mono">src/p020_db.rs (CREATE TABLE raw_inquiries)</td>
             </tr>
             <tr>
               <td><span class="tag">rag_queries</span></td>
               <td>RAG検索ログの保管想定</td>
               <td class="mono">id, query_text, query_embedding_json, retrieved_chunks_json</td>
-              <td class="mono">src/m02_db.rs (CREATE TABLE rag_queries)</td>
+              <td class="mono">src/p020_db.rs (CREATE TABLE rag_queries)</td>
             </tr>
           </tbody>
         </table>
@@ -236,7 +236,7 @@
         <h2>分割ルール早見表（元の文章 → どのテーブルの何カラムに入るか）</h2>
         <p style="margin-top: 0; color: var(--muted); font-size: 13px">
           1本のマニュアル文書を「メタ情報」「本文の1手順」「ベクトル」の3粒度に手で分けて、別々のテーブルに入れています。<br />
-          自動分割アルゴリズムはありません（<span class="mono">src/m03_seed.rs</span> に直書きしているのが現状）。
+          自動分割アルゴリズムはありません（<span class="mono">src/p030_seed.rs</span> に直書きしているのが現状）。
         </p>
 
         <table>
@@ -296,14 +296,14 @@
             <div class="mono" style="font-weight:400; margin-top:6px">
               documents { id="doc_002", title="ログインできない時の対応", category="認証", visibility="cs_only", status="approved" }
             </div>
-            <div class="mono">src/m03_seed.rs:29-32</div>
+            <div class="mono">src/p030_seed.rs:29-32</div>
           </div>
           <div class="step">
             ↓ <strong>ルールB:</strong> 本文を「。」で区切った1手順を <span class="mono">chunks</span> 行に（親IDと順番をつける）<br />
             <div class="mono" style="font-weight:400; margin-top:6px">
               chunks { id="chunk_003", document_id="doc_002", chunk_index=1, content="顧客がログインできない場合は…確認する。" }
             </div>
-            <div class="mono">src/m03_seed.rs:55-62</div>
+            <div class="mono">src/p030_seed.rs:55-62</div>
           </div>
           <div class="step">
             ↓ <strong>ルールC:</strong> その chunk のベクトル(<span class="mono">Vec&lt;f64&gt;</span>)を JSON 文字列化して <span class="mono">embeddings</span> 行に<br />
@@ -311,7 +311,7 @@
               Vec&lt;f64&gt; [0.05, 0.9, 0.02, 0.02, 0.01] → "[0.05,0.9,0.02,0.02,0.01]"<br />
               embeddings { id="emb_chunk_003", chunk_id="chunk_003", embedding_model="dummy-embedding-v1", embedding_json="[0.05,0.9,0.02,0.02,0.01]" }
             </div>
-            <div class="mono">src/m03_seed.rs:61, 171-181</div>
+            <div class="mono">src/p030_seed.rs:61, 171-181</div>
           </div>
           <div class="step" style="background:#f5f5f5; border-color:#c8c8c8">
             <span class="mono">raw_inquiries</span> / <span class="mono">rag_queries</span> は seed 時点では <strong>1行も作らない</strong>（実行時にユーザ操作で入る想定の領域）
@@ -368,7 +368,7 @@
             ・要約後の JSON を保存しておけば、再投入・再ベクトル化が決定論的にできる（生文の再 AI 推論が不要）
           </div>
           <div class="step" style="background:#fef2f2; border-color:#f5a8a8; color:#9b2c2c">
-            <strong>未実装:</strong> ②③④ のいずれも現状コードにはなし。<span class="mono">raw_inquiries</span> / <span class="mono">rag_queries</span> はテーブル定義のみで INSERT 実装は存在しない（<span class="mono">src/m02_db.rs</span>）。
+            <strong>未実装:</strong> ②③④ のいずれも現状コードにはなし。<span class="mono">raw_inquiries</span> / <span class="mono">rag_queries</span> はテーブル定義のみで INSERT 実装は存在しない（<span class="mono">src/p020_db.rs</span>）。
           </div>
         </div>
       </section>
@@ -379,20 +379,20 @@
           <div class="flow">
             <div class="step">
               1. <span class="mono">documents</span> を INSERT
-              <div class="mono">src/m03_seed.rs:24-37</div>
+              <div class="mono">src/p030_seed.rs:24-37</div>
             </div>
             <div class="step">
               2. 各チャンク本文を <span class="mono">chunks</span> に INSERT
-              <div class="mono">src/m03_seed.rs:150-162</div>
+              <div class="mono">src/p030_seed.rs:150-162</div>
             </div>
             <div class="step">
               3. ベクトル <span class="mono">Vec&lt;f64&gt;</span> を JSON 文字列化して
               <span class="mono">embeddings.embedding_json</span> に INSERT
-              <div class="mono">src/m03_seed.rs:163-173</div>
+              <div class="mono">src/p030_seed.rs:163-173</div>
             </div>
             <div class="step">
               4. Seedファイルの本文は Sudachi ベース簡易埋め込みで推定
-              <div class="mono">src/m03_seed.rs:131-133, src/m04_embedding.rs</div>
+              <div class="mono">src/p030_seed.rs:131-133, src/p040_embedding.rs</div>
             </div>
           </div>
         </article>
@@ -403,20 +403,20 @@
             <div class="step">
               1. 入力クエリを正規化
               <div class="mono">normalize_query_text()</div>
-              <div class="mono">src/m05_api/m05_api_search_text.rs:32-33</div>
+              <div class="mono">src/m05_api/p020_search_text.rs:32-33</div>
             </div>
             <div class="step">
               2. クエリ文字列をベクトル化
               <div class="mono">build_query_embedding_with_sudachi()</div>
-              <div class="mono">src/m05_api/m05_api_search_text.rs:34-35</div>
+              <div class="mono">src/m05_api/p020_search_text.rs:34-35</div>
             </div>
             <div class="step">
               3. <span class="mono">embeddings + chunks + documents</span> を JOINし候補取得
-              <div class="mono">src/m05_api/m05_api_search_text.rs:47-67</div>
+              <div class="mono">src/m05_api/p020_search_text.rs:47-67</div>
             </div>
             <div class="step">
               4. <span class="mono">embedding_json</span> を配列に戻して cosine 類似度計算
-              <div class="mono">src/m05_api/m05_api_search_text.rs:127-130</div>
+              <div class="mono">src/m05_api/p020_search_text.rs:127-130</div>
             </div>
           </div>
         </article>
@@ -429,7 +429,7 @@
           <div><strong>raw_inquiries → chunks</strong>: 現在は変換処理未実装。chunks 作成は seed 処理からのみ。</div>
         </div>
         <p class="mono" style="margin-top:10px">
-          根拠: src/m02_db.rs のスキーマ定義 / src 配下に raw_inquiries INSERT 実装なし
+          根拠: src/p020_db.rs のスキーマ定義 / src 配下に raw_inquiries INSERT 実装なし
         </p>
       </section>
 
@@ -503,19 +503,19 @@
               <td class="mono">chunk_001</td>
               <td>顧客から請求書の宛名変更を依頼された場合は、本人確認後、契約名義と請求先情報を確認する。</td>
               <td class="mono">[0.91, 0.05, 0.02, 0.01, 0.0]</td>
-              <td class="mono">src/m03_seed.rs:39-46</td>
+              <td class="mono">src/p030_seed.rs:39-46</td>
             </tr>
             <tr>
               <td class="mono">chunk_002</td>
               <td>契約名義の変更を伴う場合は、営業担当または管理部に確認する。</td>
               <td class="mono">[0.84, 0.09, 0.03, 0.01, 0.01]</td>
-              <td class="mono">src/m03_seed.rs:47-54</td>
+              <td class="mono">src/p030_seed.rs:47-54</td>
             </tr>
             <tr>
               <td class="mono">chunk_003</td>
               <td>顧客がログインできない場合は、メールアドレス、アカウント状態、パスワード再設定履歴を確認する。</td>
               <td class="mono">[0.05, 0.9, 0.02, 0.02, 0.01]</td>
-              <td class="mono">src/m03_seed.rs:55-62</td>
+              <td class="mono">src/p030_seed.rs:55-62</td>
             </tr>
           </tbody>
         </table>
@@ -527,18 +527,18 @@
             <div class="chunk-step">
               1. 元データ（本文）
               <div>顧客から請求書の宛名変更を依頼された場合は、本人確認後、契約名義と請求先情報を確認する。</div>
-              <div class="mono">src/m03_seed.rs:44</div>
+              <div class="mono">src/p030_seed.rs:44</div>
             </div>
             <div class="chunk-step">
               2. chunks に保存
               <div class="mono">INSERT INTO chunks (... content=上記本文 ...)</div>
-              <div class="mono">src/m03_seed.rs:150-162</div>
+              <div class="mono">src/p030_seed.rs:150-162</div>
             </div>
             <div class="chunk-step">
               3. ベクトル値を JSON 文字列化して embeddings に保存
               <div class="mono">Vec&lt;f64&gt; [0.91, 0.05, 0.02, 0.01, 0.0]</div>
               <div class="mono">-&gt; \"[0.91,0.05,0.02,0.01,0.0]\"</div>
-              <div class="mono">src/m03_seed.rs:45, 163-173</div>
+              <div class="mono">src/p030_seed.rs:45, 163-173</div>
             </div>
           </div>
 
@@ -547,18 +547,18 @@
             <div class="chunk-step">
               1. 元データ（本文）
               <div>契約名義の変更を伴う場合は、営業担当または管理部に確認する。</div>
-              <div class="mono">src/m03_seed.rs:52</div>
+              <div class="mono">src/p030_seed.rs:52</div>
             </div>
             <div class="chunk-step">
               2. chunks に保存
               <div class="mono">INSERT INTO chunks (... content=上記本文 ...)</div>
-              <div class="mono">src/m03_seed.rs:150-162</div>
+              <div class="mono">src/p030_seed.rs:150-162</div>
             </div>
             <div class="chunk-step">
               3. ベクトル値を JSON 文字列化して embeddings に保存
               <div class="mono">Vec&lt;f64&gt; [0.84, 0.09, 0.03, 0.01, 0.01]</div>
               <div class="mono">-&gt; \"[0.84,0.09,0.03,0.01,0.01]\"</div>
-              <div class="mono">src/m03_seed.rs:53, 163-173</div>
+              <div class="mono">src/p030_seed.rs:53, 163-173</div>
             </div>
           </div>
 
@@ -567,18 +567,18 @@
             <div class="chunk-step">
               1. 元データ（本文）
               <div>顧客がログインできない場合は、メールアドレス、アカウント状態、パスワード再設定履歴を確認する。</div>
-              <div class="mono">src/m03_seed.rs:60</div>
+              <div class="mono">src/p030_seed.rs:60</div>
             </div>
             <div class="chunk-step">
               2. chunks に保存
               <div class="mono">INSERT INTO chunks (... content=上記本文 ...)</div>
-              <div class="mono">src/m03_seed.rs:150-162</div>
+              <div class="mono">src/p030_seed.rs:150-162</div>
             </div>
             <div class="chunk-step">
               3. ベクトル値を JSON 文字列化して embeddings に保存
               <div class="mono">Vec&lt;f64&gt; [0.05, 0.9, 0.02, 0.02, 0.01]</div>
               <div class="mono">-&gt; \"[0.05,0.9,0.02,0.02,0.01]\"</div>
-              <div class="mono">src/m03_seed.rs:61, 163-173</div>
+              <div class="mono">src/p030_seed.rs:61, 163-173</div>
             </div>
           </div>
         </div>
@@ -596,17 +596,17 @@
             <tr>
               <td>入力</td>
               <td class="mono">samples/support_histories_seed.json の chunks[] テキスト</td>
-              <td class="mono">src/m03_seed.rs:116-124</td>
+              <td class="mono">src/p030_seed.rs:116-124</td>
             </tr>
             <tr>
               <td>埋め込み生成</td>
               <td class="mono">infer_embedding_from_text() -> build_query_embedding_with_sudachi()</td>
-              <td class="mono">src/m03_seed.rs:101-110, 131-133</td>
+              <td class="mono">src/p030_seed.rs:101-110, 131-133</td>
             </tr>
             <tr>
               <td>保存</td>
               <td class="mono">Vec&lt;f64&gt; を JSON 文字列化して embeddings に INSERT</td>
-              <td class="mono">src/m03_seed.rs:163-173</td>
+              <td class="mono">src/p030_seed.rs:163-173</td>
             </tr>
           </tbody>
         </table>
@@ -616,10 +616,10 @@
         <h2>関連ファイル</h2>
         <ul>
           <li><a href="/index.html">/index.html</a> - メインUI</li>
-          <li class="mono">src/m02_db.rs - テーブル定義</li>
-          <li class="mono">src/m03_seed.rs - chunks/embeddings への保存</li>
-          <li class="mono">src/m05_api/m05_api_search_text.rs - 検索時の変換とJOIN</li>
-          <li class="mono">src/m04_embedding.rs - 埋め込み生成と類似度</li>
+          <li class="mono">src/p020_db.rs - テーブル定義</li>
+          <li class="mono">src/p030_seed.rs - chunks/embeddings への保存</li>
+          <li class="mono">src/m05_api/p020_search_text.rs - 検索時の変換とJOIN</li>
+          <li class="mono">src/p040_embedding.rs - 埋め込み生成と類似度</li>
         </ul>
       </section>
     </div>

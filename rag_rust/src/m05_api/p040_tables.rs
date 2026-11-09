@@ -3,8 +3,8 @@ use axum::http::StatusCode;
 use axum::Json;
 use serde_json::{json, Value};
 
-use crate::m01_models::AppState;
-use crate::m02_db::{get_table_counts, init_db, internal_err};
+use crate::p010_models::AppState;
+use crate::p020_db::{get_table_counts, init_db, internal_err};
 
 /// `GET /api/sqlite/tables` — DB 全テーブルの行数を一覧で返す。
 ///

@@ -6,12 +6,12 @@ use axum::Json;
 use rusqlite::{params, Row};
 use serde_json::{json, Value};
 
-use crate::m01_models::{AppState, SearchResultRow, SearchTextRequest};
-use crate::m02_db::{db_conn, internal_err};
-use crate::m04_embedding::{
+use crate::p010_models::{AppState, SearchResultRow, SearchTextRequest};
+use crate::p020_db::{db_conn, internal_err};
+use crate::p040_embedding::{
     analyze_proper_noun_ratio_by_language, build_query_embedding_with_sudachi, cosine_similarity,
 };
-use crate::m06_query_normalizer::normalize_query_text;
+use crate::p050_query_normalizer::normalize_query_text;
 
 /// `POST /api/sqlite/search-text` — クエリ文字列によるベクトル類似検索エンドポイント。
 ///

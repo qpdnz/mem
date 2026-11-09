@@ -6,8 +6,8 @@
 		lockRemainingSeconds,
 		login,
 		loginWithExternalUser
-	} from '$lib/auth.svelte';
-	import { loginWithMicrosoft } from '$lib/msAuth';
+	} from '$lib/p010_auth.svelte';
+	import { loginWithMicrosoft } from '$lib/p080_ms_auth';
 
 	let username = $state('');
 	let password = $state('');

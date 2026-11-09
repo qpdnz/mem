@@ -3,9 +3,9 @@ use axum::http::StatusCode;
 use axum::Json;
 use serde_json::{json, Value};
 
-use crate::m01_models::{AppState, InitSeedQuery};
-use crate::m02_db::{get_table_counts, init_db, internal_err};
-use crate::m03_seed::seed_sample_data;
+use crate::p010_models::{AppState, InitSeedQuery};
+use crate::p020_db::{get_table_counts, init_db, internal_err};
+use crate::p030_seed::seed_sample_data;
 
 /// `POST /api/sqlite/init-seed` — DB を初期化し、サンプルデータを投入するエンドポイント。
 ///

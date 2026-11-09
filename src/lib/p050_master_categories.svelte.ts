@@ -5,7 +5,7 @@ import {
 	removeCategoryRow,
 	updateCategoryRow,
 	type MasterCategory,
-} from './masterCategories';
+} from './p070_master_categories';
 
 const STORAGE_KEY = 'ai-web-master-categories-v1';
 

@@ -209,7 +209,7 @@ def validate(m: dict) -> tuple[list[str], list[str]]:
 
 def render(m: dict) -> str:
     shell = (ASSETS / "shell.html").read_text(encoding="utf-8")
-    css = (ASSETS / "map.css").read_text(encoding="utf-8")
+    css = (ASSETS / "p010_map.css").read_text(encoding="utf-8")
     scripts = "\n".join(p.read_text(encoding="utf-8") for p in sorted((ASSETS / "js").glob("*.js")))
     data = json.dumps(m, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     title = html.escape(str((m.get("meta") or {}).get("title") or "domain map"))

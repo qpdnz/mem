@@ -107,7 +107,7 @@ python .claude/skills/domain-map/scripts/check_words.py .doc/<名前>/map.json -
 ### 4. 配置を探す
 
 ```bash
-node .claude/skills/domain-map/scripts/layout.mjs .doc/<名前>/map.json --write --er
+node .claude/skills/domain-map/scripts/p040_layout.mjs .doc/<名前>/map.json --write --er
 ```
 
 箱の位置 (`at`) を、線の交差・長さ・同じ層 (色) のまとまりで点を付けて探し、定義へ書き込む。業務と画面は筋書きの順があるので既定では動かさない (`--flow` `--screens` で探す)。

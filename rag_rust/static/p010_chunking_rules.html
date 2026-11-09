@@ -153,15 +153,15 @@
         <h1>chunks / documents の作り方ルール案</h1>
         <p>「どこで区切る？」「タイトルどう書く？」を、良い例 / 悪い例で見ながら決めるためのページです。</p>
         <div class="nav">
-          <a href="/data-flow.html">← データフロー早見表に戻る</a>
-          <a href="/cs-rag-design.html" style="margin-left: 12px;">お客様対応RAG 新規設計書 →</a>
+          <a href="/p030_data_flow.html">← データフロー早見表に戻る</a>
+          <a href="/p020_cs_rag_design.html" style="margin-left: 12px;">お客様対応RAG 新規設計書 →</a>
         </div>
       </section>
 
       <section class="panel">
         <h2>なんでルールがいるの？</h2>
         <p class="lead">
-          いま <span class="mono">src/m03_seed.rs</span> は人が手で文を切って入れているだけで、書き方のルールがありません。<br />
+          いま <span class="mono">src/p030_seed.rs</span> は人が手で文を切って入れているだけで、書き方のルールがありません。<br />
           書き方がバラバラだと、検索精度がブレるし、将来 AI に自動でチャンク化させるとき(=PIIマスキング後の問い合わせを自動投入する構想)に、何を AI に守らせるかが決まりません。<br />
           だから「人が書くときも AI に書かせるときも同じルール」を1つ決めておきます。
         </p>
@@ -661,7 +661,7 @@
             <tr>
               <td>2. ベクトル検索</td>
               <td>クエリのベクトルと chunk のベクトルで cosine 類似度</td>
-              <td>既に実装済み(<span class="mono">src/m05_api/m05_api_search_text.rs</span>)</td>
+              <td>既に実装済み(<span class="mono">src/m05_api/p020_search_text.rs</span>)</td>
             </tr>
             <tr>
               <td>3. キーワード検索</td>
@@ -715,9 +715,9 @@
       <section class="panel">
         <h2>関連ページ</h2>
         <ul>
-          <li><a href="/data-flow.html">データフロー早見表</a> — 全体のテーブル構成と変換ルール</li>
-          <li class="mono">src/m03_seed.rs — 現状の seed 実装(まだこのルールは強制していない)</li>
-          <li class="mono">src/m02_db.rs — テーブル定義</li>
+          <li><a href="/p030_data_flow.html">データフロー早見表</a> — 全体のテーブル構成と変換ルール</li>
+          <li class="mono">src/p030_seed.rs — 現状の seed 実装(まだこのルールは強制していない)</li>
+          <li class="mono">src/p020_db.rs — テーブル定義</li>
         </ul>
       </section>
     </div>

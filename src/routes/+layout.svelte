@@ -1,8 +1,8 @@
 <script lang="ts">
-	import './layout.css';
+	import './p010_layout.css';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { isAuthenticated, touchSession } from '$lib/auth.svelte';
+	import { isAuthenticated, touchSession } from '$lib/p010_auth.svelte';
 	import favicon from '$lib/assets/favicon.svg';
 
 	let { children } = $props();
